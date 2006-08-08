@@ -13,7 +13,6 @@ STRIP = strip
 CFLAGS = -c -Wall -g3 -ggdb
 LDFLAGS = -Wall -g3 -ggdb
 
-# Static binary
 #LDFLAGS += -static 
 
 PREFIX = /usr

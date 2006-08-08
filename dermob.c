@@ -24,6 +24,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* $Id: dermob.c,v 1.2 2006/08/08 18:16:54 matthias Exp $ */
+
 #include "dermob.h"
 
 void
@@ -34,9 +36,9 @@ mprintf(const char *fmt, ...)
 	if (trigger == 1)
 		return;
 
-        va_start(ap, fmt);
+	va_start(ap, fmt);
 	vfprintf(stdout, fmt, ap);
-        va_end(ap);
+	va_end(ap);
 }
 
 void
@@ -171,12 +173,10 @@ void
 analyse_load_command(char *buffer, int offset, int ncmds)
 {
 	struct load_command *ld;
-	//struct segment_command *sc;
 	char *ptr;
 	int i, nofx = 0, val = 0;
 	
 	ld = malloc(sizeof(*ld));
-	//sec = malloc(sizeof(*sec));
 	
 	ptr = buffer;
 	if (offset > 0) 
@@ -271,7 +271,6 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			mprintf("  String table offset:	%d bytes\n", symc->stroff);
 			mprintf("  String table size:	%d bytes\n", symc->strsize);
 			ret = sizeof(*symc);
-			//ptr += sizeof(*symc);
 			free(symc);
 			break;
 		case LC_LOAD_DYLIB:

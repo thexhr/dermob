@@ -22,8 +22,5 @@ int text_offset = 0;
 int text_size = 0;
 int text_addr = 0;
 
-//extern void mprintf(int trigger, char *fmt, ...);
-//extern void mprintf(const char *fmt, ...);
-
 extern int examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx);
 extern void examine_section(char *buffer, char *ptr, int val, int nofx);
