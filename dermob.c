@@ -24,22 +24,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.12 2006/08/09 16:15:50 matthias Exp $ */
+/* $Id: dermob.c,v 1.13 2006/08/09 16:53:14 matthias Exp $ */
 
 #include "dermob.h"
-
-
-
-void
-usage(const char *file)
-{
-	printf("Usage: 	%s [-uhc] <binary>\n", file);
-	printf("	-u:  Display universal header\n");
-	printf("	-h:  Display mach-o header\n");
-	printf("	-c:  Display complete header\n");
-	printf("	-t:  Display __TEXT,__text section\n");
-	exit(1);
-}
 
 /*
  * Analyse a possible fat header or return silently
@@ -201,7 +188,7 @@ void
 examine_section(char *buffer, char *ptr, int val, int nofx)
 {
 	struct section *sec;
-	int j;
+	int j,foo=0;
 	
 	sec = malloc(sizeof(*sec));
 		
@@ -215,6 +202,14 @@ examine_section(char *buffer, char *ptr, int val, int nofx)
 			text_addr = swapi(sec->addr);
 			text_size = swapi(sec->size);
 			text_offset = swapi(sec->offset);
+		}
+		if ((memcmp(sec->segname, "__OBJC", 6) == 0) &&
+		    (memcmp(sec->sectname, "__class", 6) == 0) && foo != 1) {
+			printf("fffff\n");
+			data_addr = swapi(sec->addr);
+			data_size = swapi(sec->size);
+			data_offset = swapi(sec->offset);
+			foo=1;
 		}
 		
 		mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
@@ -358,12 +353,13 @@ display_text_section(char *buffer, int addr, int offset, int size)
 	if (offset <= 0)
 		return;
 
+	printf("addr %x offset %d size %d\n", addr, offset, size);
 	
 	ptr = buffer;
 	ptr += offset;
 
 	for (i=0; i<size; i++) {
-		if (j == 0) printf("0x%.08x ", offset+i);
+		if (j == 0) printf("%.08x  ", offset+i);
 		j++;
 		printf("%.02x ", (*ptr & 0xFF));
 
@@ -383,99 +379,4 @@ display_text_section(char *buffer, int addr, int offset, int size)
 	printf("\n");
 }
 
-int
-main (int argc, char **argv)
-{
-	struct stat sb;
-	char *buffer, ch;
-	int fd, len=1, offset = 0, ncmds = 0, flag = 0, ret;
-	
-	trigger = 0;
-	dynamic = 0;
-	dyn_display = 0;
-	
-	if (argc < 2) {
-		usage(argv[0]);
-	}
-	
-	while ((ch = getopt(argc, argv, "uhct")) != -1) {
-		switch (ch) {
-		case 'u': flag |= 0x1; break;
-		case 'h': flag |= 0x2; break;
-		case 'c': flag |= 0x4; break;
-		case 't': flag |= 0x8; break;
-		default: usage(argv[0]); break;
-		}
-	}
-
-	argc -= optind;
-	argv += optind;
-	
-	if ((stat(argv[0], &sb)) < 0) 
-		errx(1, "Cannot open %s", argv[1]);
-	
-	if ((fd = open(argv[0], O_RDONLY, 0)) < 0)
-		errx(1, "Cannot open %s", argv[1]);
-	
-	if ((buffer = malloc(sb.st_size)) == NULL)
-		errx(1, "Cannot allocate memory");
-	
-	len = read(fd, buffer, sb.st_size);
-	
-	cpu = get_cpu_information();
-	bo_a = get_bo_information();
-	
-	switch (flag) {
-		case 0x1:
-			analyse_fat_header(buffer, &offset);
-			break;
-		case 0x2:
-			trigger = 1;
-			analyse_fat_header(buffer, &offset);
-			trigger = 0;
-			analyse_mo_header(buffer, &offset, &ncmds);
-			break;
-		case 0x3:
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
-			break;
-		case 0x4:
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
-			analyse_load_command(buffer, offset, ncmds);
-			break;
-		case 0x8:
-			trigger = 1;
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
-			analyse_load_command(buffer, offset, ncmds);
-			trigger = 0;
-			display_text_section(buffer, text_addr, text_offset, text_size);
-			break;
-		default:
-			trigger = 1;
-			ret = analyse_fat_header(buffer, &offset);
-			if (ret > 0)
-				printf("- Universal Binary for %d architectures\n", ret);
-			ret = analyse_mo_header(buffer, &offset, &ncmds);
-			if (ret > 0) {
-				printf("- Vaild ");
-				trigger = 0;
-				display_cpu_arch(swapi(ret));
-				trigger = 1;				
-				printf(" mach-o binary\n");
-			} else {
-				printf("No mach-o file\n");
-				exit(1);
-			}
-			dyn_display = 1;
-			analyse_load_command(buffer, offset, ncmds);
-			printf("%s", dynamic ? "" : "- Statically linked\n");
-			break;
-	}
-
-	close(fd);
-	free(buffer);
-	
-	return (0);
 }
