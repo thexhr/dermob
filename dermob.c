@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.8 2006/08/09 10:41:02 matthias Exp $ */
+/* $Id: dermob.c,v 1.9 2006/08/09 12:11:56 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -49,7 +49,6 @@ analyse_fat_header(char *buffer, int *offset)
 {
 	struct fat_header *fh;
 	struct fat_arch *fa;
-	const NXArchInfo *na;
 	char *ptr;
 	int i, ret = 0;
 	
@@ -66,33 +65,30 @@ analyse_fat_header(char *buffer, int *offset)
 		return(ret);
 	}
 	
+	if (fh->magic == FAT_MAGIC)
+		bo_b = LE;
+	else if (fh->magic == FAT_CIGAM)
+		bo_b = BE;
+		
 	mprintf("Universal Binary header starting at 0x%.08x\n\n", *offset);
-	mprintf(" Magic:		0x%x\n", htonl(fh->magic));
+	mprintf(" Magic:		0x%x\n", swapi(fh->magic));
 
 	ptr += sizeof(*fh);
 	
-	if ((na = NXGetLocalArchInfo()) == NULL)  {
-		mprintf("CPU architecture unknown.\n");
-		free(fa);
-		free(fh);
-		return(-1);
-	}
-	
-	for (i = 0; i < htonl(fh->nfat_arch); i++) {
+	for (i = 0; i < swapi(fh->nfat_arch); i++) {
 		memcpy(fa, ptr, sizeof(*fa));
 		mprintf(" Architecture %d\n", i);
 		mprintf("   CPU Type:	");
-		display_cpu_arch(htonl(fa->cputype));
+		display_cpu_arch(swapi(fa->cputype));
 		mprintf("\n");
-		mprintf("   Subtype:	%d\n", htonl(fa->cpusubtype));
-		mprintf("   Offest:	%d\n", htonl(fa->offset));
-		mprintf("   Size:	%d\n", htonl(fa->size));
-		mprintf("   Align:	%d\n", htonl(fa->align));
+		mprintf("   Subtype:	%d\n", swapi(fa->cpusubtype));
+		mprintf("   Offest:	%d\n", swapi(fa->offset));
+		mprintf("   Size:	%d\n", swapi(fa->size));
+		mprintf("   Align:	%d\n", swapi(fa->align));
 		mprintf("\n");
 		
-		if (na->cputype == htonl(fa->cputype))
-			*offset = htonl(fa->offset);
-		
+		if (swapi(fa->cputype) == cpu)
+			*offset = swapi(fa->offset);
 		ret++;
 		ptr += sizeof(*fa);
 	}
@@ -121,21 +117,30 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	if (mh->magic != MH_MAGIC && mh->magic != MH_CIGAM)
 		return(ret);
 	
+	if (mh->magic == MH_MAGIC && bo_a == NX_LittleEndian)
+		bo_b = LE;
+	else if (mh->magic == MH_CIGAM && bo_a == NX_LittleEndian)
+		bo_b = BE;
+	else if (mh->magic == MH_MAGIC && bo_a != NX_LittleEndian)
+		bo_b = BE;
+	else if (mh->magic == MH_CIGAM && bo_a != NX_LittleEndian)
+		bo_b = LE;
+	
 	mprintf("Mach-o header starting at 0x%.08x\n\n", *offset);
 	
-	mprintf(" Magic:		0x%x\n", mh->magic);
+	mprintf(" Magic:		0x%x\n", swapi(mh->magic));
 	mprintf(" CPU Type:	");
-	display_cpu_arch(mh->cputype);
+	display_cpu_arch(NXSwapInt(mh->cputype));
 	ret = mh->cputype;
 	mprintf("\n");	
-	mprintf(" Subtype:	%d\n", mh->cpusubtype);
-	mprintf(" Filetype:	0x%x\n", mh->filetype);
-	mprintf(" No load cmds:	%d cmds\n", mh->ncmds);
-	mprintf(" Size of cmds:	%d bytes\n", mh->sizeofcmds);
-	mprintf(" Flags:		0x%.08x\n", mh->flags);
+	mprintf(" Subtype:	%d\n", swapi(mh->cpusubtype));
+	mprintf(" Filetype:	0x%x\n", swapi(mh->filetype));
+	mprintf(" No load cmds:	%d cmds\n", swapi(mh->ncmds));
+	mprintf(" Size of cmds:	%d bytes\n", swapi(mh->sizeofcmds));
+	mprintf(" Flags:		0x%.08x\n", swapi(mh->flags));
 	mprintf("\n");
 	
-	*ncmds = mh->ncmds;
+	*ncmds = swapi(mh->ncmds);
 	*offset += sizeof(*mh);
 	
 	free(mh);
@@ -162,17 +167,17 @@ analyse_load_command(char *buffer, int offset, int ncmds)
 		memcpy(ld, ptr, sizeof(*ld));
 		mprintf("Load Command %d\n", i);
 		mprintf("  Command:	");
-		display_cmd_name(ld->cmd);
-		mprintf("  Command size:	%d bytes\n", ld->cmdsize);
+		display_cmd_name(swapi(ld->cmd));
+		mprintf("  Command size:	%d bytes\n", swapi(ld->cmdsize));
 	
-		offset += ld->cmdsize;
-		val = examine_segmet(buffer, ptr, ld->cmd, ld->cmdsize, &nofx);
+		offset += swapi(ld->cmdsize);
+		val = examine_segmet(buffer, ptr, swapi(ld->cmd), swapi(ld->cmdsize), &nofx);
 		if (nofx > 0) 
 			examine_section(buffer, ptr, val, nofx);
 			
 		mprintf("\n");
 		
-		ptr += ld->cmdsize;
+		ptr += swapi(ld->cmdsize);
 		nofx = 0;
 	}
 
@@ -194,14 +199,14 @@ examine_section(char *buffer, char *ptr, int val, int nofx)
 		mprintf("    Sectname:	%s\n", sec->sectname);
 		if ((memcmp(sec->segname, "__TEXT", 7) == 0) &&
 		    (memcmp(sec->sectname, "__text", 7) == 0)) {
-			text_addr = sec->addr;
-			text_size = sec->size;
-			text_offset = sec->offset;
+			text_addr = swapi(sec->addr);
+			text_size = swapi(sec->size);
+			text_offset = swapi(sec->offset);
 		}
 		
-		mprintf("    VM addr:	0x%.08x\n", sec->addr);
-		mprintf("    VM size:	%d bytes\n", sec->size);
-		mprintf("    Offset:	%d\n", sec->offset);			
+		mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
+		mprintf("    VM size:	%d bytes\n", swapi(sec->size));
+		mprintf("    Offset:	%d\n", swapi(sec->offset));
 		mprintf("\n");
 		ptr += sizeof(*sec);
 	}
@@ -226,26 +231,26 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			sc = malloc(sizeof(*sc));
 			memcpy(sc, ptr, sizeof(*sc));
 			mprintf("  Name:		%s\n", sc->segname);
-			mprintf("  VM addr:	0x%.08x\n", sc->vmaddr);
-			mprintf("  VM size:	0x%.08x\n", sc->vmsize);
-			mprintf("  VM size:	0x%.08x\n", sc->vmsize);
-			mprintf("  File offset:	0x%.08x\n", sc->fileoff);
-			mprintf("  File size:	%d bytes\n", sc->filesize);
-			mprintf("  Max prot:	0x%.08x\n", sc->maxprot);
-			mprintf("  Init prot:	0x%.08x\n", sc->initprot);
-			mprintf("  No of sects:	%d\n", sc->nsects);
-			mprintf("  Flags:	0x%.08x\n", sc->flags);
-			*nofx = sc->nsects;
+			mprintf("  VM addr:	0x%.08x\n", swapi(sc->vmaddr));
+			mprintf("  VM size:	0x%.08x\n", swapi(sc->vmsize));
+			mprintf("  VM size:	0x%.08x\n", swapi(sc->vmsize));
+			mprintf("  File offset:	0x%.08x\n", swapi(sc->fileoff));
+			mprintf("  File size:	%d bytes\n", swapi(sc->filesize));
+			mprintf("  Max prot:	0x%.08x\n", swapi(sc->maxprot));
+			mprintf("  Init prot:	0x%.08x\n", swapi(sc->initprot));
+			mprintf("  No of sects:	%d\n", swapi(sc->nsects));
+			mprintf("  Flags:	0x%.08x\n", swapi(sc->flags));
+			*nofx = swapi(sc->nsects);
 			ret = sizeof(*sc);
 			free(sc);
 			break;
 		case LC_SYMTAB:
 			symc = malloc(sizeof(*symc));
 			memcpy(symc, ptr, sizeof(*symc));
-			mprintf("  Symbol table offset:	%d bytes\n", symc->symoff);
-			mprintf("  Symbol table entries:	%d\n", symc->nsyms);
-			mprintf("  String table offset:	%d bytes\n", symc->stroff);
-			mprintf("  String table size:	%d bytes\n", symc->strsize);
+			mprintf("  Symbol table offset:	%d bytes\n", swapi(symc->symoff));
+			mprintf("  Symbol table entries:	%d\n", swapi(symc->nsyms));
+			mprintf("  String table offset:	%d bytes\n", swapi(symc->stroff));
+			mprintf("  String table size:	%d bytes\n", swapi(symc->strsize));
 			ret = sizeof(*symc);
 			free(symc);
 			break;
@@ -254,14 +259,14 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
 			if (dyn_display < 1) {
-				mprintf("  Name:			%s\n", ptr+dly->dylib.name.offset);
-				timev = dly->dylib.timestamp;
+				mprintf("  Name:			%s\n", ptr+swapi(dly->dylib.name.offset));
+				timev = swapi(dly->dylib.timestamp);
 				mprintf("  Timestamp:		%s", ctime(&timev));
-				mprintf("  Current version:	0x%x\n", dly->dylib.current_version);
-				mprintf("  Compat version:	0x%x\n", dly->dylib.compatibility_version);
+				mprintf("  Current version:	0x%x\n", swapi(dly->dylib.current_version));
+				mprintf("  Compat version:	0x%x\n", swapi(dly->dylib.compatibility_version));
 			} else {
 				trigger = 0;
-				mprintf("   + %s\n", ptr+dly->dylib.name.offset);
+				mprintf("   + %s\n", ptr+swapi(dly->dylib.name.offset));
 				trigger = 1;
 			}
 			
@@ -271,39 +276,39 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 		case LC_LOAD_DYLINKER:
 			dlnk = malloc(sizeof(*dlnk));
 			memcpy(dlnk, ptr, sizeof(*dlnk));
-			mprintf("  Name:		%s\n", ptr+dlnk->name.offset);
+			mprintf("  Name:		%s\n", ptr+swapi(dlnk->name.offset));
 			ret = sizeof(*dlnk);
 			free(dlnk);
 			break;
 		case LC_DYSYMTAB:
 			dsym = malloc(sizeof(*dsym));
 			memcpy(dsym, ptr, sizeof(*dsym));
-			mprintf("  ilocalsym:		%d\n", dsym->ilocalsym);
-			mprintf("  nlocalsym:		%d\n", dsym->nlocalsym);
-			mprintf("  iextdefsym:		%d\n", dsym->iextdefsym);
-			mprintf("  nextdefsym:		%d\n", dsym->nextdefsym);
-			mprintf("  iundefsym:		%d\n", dsym->iundefsym);
-			mprintf("  nundefsym:		%d\n", dsym->nundefsym);
-			mprintf("  tocoff:		%d\n", dsym->tocoff);
-			mprintf("  ntoc:			%d\n", dsym->ntoc);
-			mprintf("  modtaboff:		%d\n", dsym->modtaboff);
-			mprintf("  nmodtab:		%d\n", dsym->nmodtab);
-			mprintf("  extrefsymoff:		%d\n", dsym->extrefsymoff);
-			mprintf("  nextrefsyms:		%d\n", dsym->nextrefsyms);
-			mprintf("  indirectsymoff:	%d\n", dsym->indirectsymoff);
-			mprintf("  nindirectsyms:	%d\n", dsym->nindirectsyms);
-			mprintf("  extreloff:		%d\n", dsym->extreloff);
-			mprintf("  nextrel:		%d\n", dsym->nextrel);
-			mprintf("  locreloff:		%d\n", dsym->locreloff);
-			mprintf("  nlocrel:		%d\n", dsym->nlocrel);
+			mprintf("  ilocalsym:		%d\n", swapi(dsym->ilocalsym));
+			mprintf("  nlocalsym:		%d\n", swapi(dsym->nlocalsym));
+			mprintf("  iextdefsym:		%d\n", swapi(dsym->iextdefsym));
+			mprintf("  nextdefsym:		%d\n", swapi(dsym->nextdefsym));
+			mprintf("  iundefsym:		%d\n", swapi(dsym->iundefsym));
+			mprintf("  nundefsym:		%d\n", swapi(dsym->nundefsym));
+			mprintf("  tocoff:		%d\n", swapi(dsym->tocoff));
+			mprintf("  ntoc:			%d\n", swapi(dsym->ntoc));
+			mprintf("  modtaboff:		%d\n", swapi(dsym->modtaboff));
+			mprintf("  nmodtab:		%d\n", swapi(dsym->nmodtab));
+			mprintf("  extrefsymoff:		%d\n", swapi(dsym->extrefsymoff));
+			mprintf("  nextrefsyms:		%d\n", swapi(dsym->nextrefsyms));
+			mprintf("  indirectsymoff:	%d\n", swapi(dsym->indirectsymoff));
+			mprintf("  nindirectsyms:	%d\n", swapi(dsym->nindirectsyms));
+			mprintf("  extreloff:		%d\n", swapi(dsym->extreloff));
+			mprintf("  nextrel:		%d\n", swapi(dsym->nextrel));
+			mprintf("  locreloff:		%d\n", swapi(dsym->locreloff));
+			mprintf("  nlocrel:		%d\n", swapi(dsym->nlocrel));
 			ret = sizeof(*dsym);
 			free(dsym);
 			break;
 		case LC_TWOLEVEL_HINTS:
 			two = malloc(sizeof(*two));
 			memcpy(two, ptr, sizeof(*two));
-			mprintf("  Offset:		%d\n", two->offset);
-			mprintf("  No of 2level hints:	%d\n", two->nhints);			
+			mprintf("  Offset:		%d\n", swapi(two->offset));
+			mprintf("  No of 2level hints:	%d\n", swapi(two->nhints));			
 			ret = sizeof(*two);
 			free(two);
 			break;
@@ -388,6 +393,9 @@ main (int argc, char **argv)
 		errx(1, "Cannot allocate memory");
 	
 	len = read(fd, buffer, sb.st_size);
+	
+	cpu = get_cpu_information();
+	bo_a = get_bo_information();
 	
 	switch (flag) {
 		case 0x1:

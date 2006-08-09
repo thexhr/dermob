@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.3 2006/08/09 09:57:20 matthias Exp $ */
+/* $Id: util.c,v 1.4 2006/08/09 12:11:56 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -79,4 +79,43 @@ mprintf(const char *fmt, ...)
 	va_start(ap, fmt);
 	vfprintf(stdout, fmt, ap);
 	va_end(ap);
+}
+
+int
+get_cpu_information()
+{
+	const NXArchInfo *na;
+	int ret = 0;
+	
+	if ((na = NXGetLocalArchInfo()) == NULL)  {
+		printf("CPU architecture unknown.\n");
+		return(ret);
+	}
+	
+	ret = na->cputype;		
+	return(ret);
+}
+
+int
+get_bo_information()
+{
+	const NXArchInfo *na;
+	int ret = 0;
+	
+	if ((na = NXGetLocalArchInfo()) == NULL)  {
+		printf("CPU architecture unknown.\n");
+		return(ret);
+	}
+	
+	ret = na->byteorder;
+	return(ret);
+}
+
+int
+swapi(int i)
+{
+	if (bo_a == NX_LittleEndian && bo_b == BE)
+		return(NXSwapInt(i));
+	else
+		return(i);
 }
