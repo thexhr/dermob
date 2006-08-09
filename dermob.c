@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.13 2006/08/09 16:53:14 matthias Exp $ */
+/* $Id: dermob.c,v 1.14 2006/08/09 16:59:29 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -347,7 +347,7 @@ void
 display_text_section(char *buffer, int addr, int offset, int size)
 {
 	char *ptr;
-	char line[17];
+	char line[16];
 	int i, j=0;
 	
 	if (offset <= 0)
@@ -377,6 +377,4 @@ display_text_section(char *buffer, int addr, int offset, int size)
 		ptr+=1;
 	}
 	printf("\n");
-}
-
 }
