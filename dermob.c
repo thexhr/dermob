@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.3 2006/08/09 08:27:47 matthias Exp $ */
+/* $Id: dermob.c,v 1.4 2006/08/09 09:23:56 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -44,14 +44,14 @@ usage(const char *file)
 /*
  * All fields are in Big-Endian Byte Order
  */
-void
+int
 analyse_fat_header(char *buffer, int *offset)
 {
 	struct fat_header *fh;
 	struct fat_arch *fa;
 	const NXArchInfo *na;
 	char *ptr;
-	int i;
+	int i, ret = 0;
 	
 	fh = malloc(sizeof(*fh));
 	fa = malloc(sizeof(*fa));
@@ -59,10 +59,11 @@ analyse_fat_header(char *buffer, int *offset)
 
 	memcpy(fh, ptr, sizeof(*fh));
 
+	/* No universal binary */
 	if (fh->magic != FAT_CIGAM && fh->magic != FAT_MAGIC) {
 		free(fa);
 		free(fh);
-		return;
+		return(ret);
 	}
 	
 	mprintf("Universal Binary header starting at 0x%.08x\n\n", *offset);
@@ -74,7 +75,7 @@ analyse_fat_header(char *buffer, int *offset)
 		mprintf("CPU architecture unknown.\n");
 		free(fa);
 		free(fh);
-		return;
+		return(-1);
 	}
 	
 	for (i = 0; i < htonl(fh->nfat_arch); i++) {
@@ -82,7 +83,8 @@ analyse_fat_header(char *buffer, int *offset)
 		mprintf(" Architecture %d\n", i);
 		mprintf("   CPU Type:	");
 		display_cpu_arch(htonl(fa->cputype));
-		mprintf("     Subtype:	%d\n", htonl(fa->cpusubtype));
+		mprintf("\n");
+		mprintf("   Subtype:	%d\n", htonl(fa->cpusubtype));
 		mprintf("   Offest:	%d\n", htonl(fa->offset));
 		mprintf("   Size:	%d\n", htonl(fa->size));
 		mprintf("   Align:	%d\n", htonl(fa->align));
@@ -90,19 +92,23 @@ analyse_fat_header(char *buffer, int *offset)
 		
 		if (na->cputype == htonl(fa->cputype))
 			*offset = htonl(fa->offset);
-			
+		
+		ret++;
 		ptr += sizeof(*fa);
 	}
 
 	free(fa);
 	free(fh);
+	
+	return(ret);
 }
 
-void
+int
 analyse_mo_header(char *buffer, int *offset, int *ncmds)
 {
 	struct mach_header *mh;
 	char *ptr;
+	int ret = 0;
 	
 	mh = malloc(sizeof(*mh));
 	ptr = buffer;	
@@ -111,15 +117,18 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 
 	memcpy(mh, ptr, sizeof(*mh));
 	
+	/* No valid mach-o binary */
 	if (mh->magic != MH_MAGIC && mh->magic != MH_CIGAM)
-		errx(1, "Not a valid mach-o binary");
+		return(ret);
 	
 	mprintf("Mach-o header starting at 0x%.08x\n\n", *offset);
 	
 	mprintf(" Magic:		0x%x\n", mh->magic);
 	mprintf(" CPU Type:	");
 	display_cpu_arch(mh->cputype);
-	mprintf("   Subtype:	%d\n", mh->cpusubtype);
+	ret = mh->cputype;
+	mprintf("\n");	
+	mprintf(" Subtype:	%d\n", mh->cpusubtype);
 	mprintf(" Filetype:	0x%x\n", mh->filetype);
 	mprintf(" No load cmds:	%d cmds\n", mh->ncmds);
 	mprintf(" Size of cmds:	%d bytes\n", mh->sizeofcmds);
@@ -130,6 +139,8 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	*offset += sizeof(*mh);
 	
 	free(mh);
+	
+	return(ret);
 }
 
 void
@@ -237,6 +248,7 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			free(symc);
 			break;
 		case LC_LOAD_DYLIB:
+			dynamic = 1;
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
 			//mprintf("  Name:			%s\n", dly->dylib.name);
@@ -255,17 +267,17 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			free(dlnk);
 			break;
 		case LC_DYSYMTAB:
-			printf("dysymtab\n");
+			mprintf("dysymtab\n");
 			break;
 		case LC_THREAD:
 		case LC_UNIXTHREAD:
-			printf("thread\n");
+			mprintf("thread\n");
 			break;
 		case LC_ROUTINES:
-			printf("routines\n");
+			mprintf("routines\n");
 			break;
 		case LC_ID_DYLIB:
-			printf("id dylib\n");
+			mprintf("id dylib\n");
 			break;
 		default:
 			break;
@@ -306,9 +318,10 @@ main (int argc, char **argv)
 {
 	struct stat sb;
 	char *buffer, ch;
-	int fd, len=1, offset = 0, ncmds = 0, flag = 0;
+	int fd, len=1, offset = 0, ncmds = 0, flag = 0, ret;
 	
 	trigger = 0;
+	dynamic = 0;
 	
 	if (argc < 2) {
 		usage(argv[0]);
@@ -366,8 +379,24 @@ main (int argc, char **argv)
 			display_text_section(buffer, text_addr, text_offset, text_size);
 			break;
 		default:
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
+			trigger = 1;
+			ret = analyse_fat_header(buffer, &offset);
+			if (ret > 0)
+				printf("Universal Binary for %d architectures, ", ret);
+			ret = analyse_mo_header(buffer, &offset, &ncmds);
+			if (ret > 0) {
+				printf("Vaild ");
+				trigger = 0;
+				display_cpu_arch(ret);
+				trigger = 1;				
+				printf(" mach-o binary, ");
+			} else {
+				printf("No mach-o file\n");
+				exit(1);
+			}
+			analyse_load_command(buffer, offset, ncmds);
+			printf("%s linked ", dynamic ? "dynamically" : "statically");
+			printf("\n");
 			break;
 	}
 

@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.1 2006/08/09 08:27:47 matthias Exp $ */
+/* $Id: util.c,v 1.2 2006/08/09 09:23:56 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -54,13 +54,13 @@ display_cpu_arch(int cputype)
 {
         switch (cputype) {
 		case CPU_TYPE_MC680x0:
-			mprintf("MC680x0\n"); break;
+			mprintf("MC680x0"); break;
 		case CPU_TYPE_I386:
-			mprintf("x86\n"); break;
+			mprintf("x86"); break;
 		case CPU_TYPE_POWERPC:
-			mprintf("PowerPC\n"); break;
+			mprintf("PowerPC"); break;
 		case CPU_TYPE_POWERPC64:
-			mprintf("PowerPC 64\n"); break;
+			mprintf("PowerPC 64"); break;
 		default:
 			mprintf("\n"); break;
 	}

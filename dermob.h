@@ -24,6 +24,7 @@ int trigger;
 int text_offset;
 int text_size;
 int text_addr;
+int dynamic;
 
 /* util.c */
 extern void display_cmd_name(int);
