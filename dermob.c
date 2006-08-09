@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.9 2006/08/09 12:11:56 matthias Exp $ */
+/* $Id: dermob.c,v 1.10 2006/08/09 12:17:26 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -433,7 +433,7 @@ main (int argc, char **argv)
 			if (ret > 0) {
 				printf("- Vaild ");
 				trigger = 0;
-				display_cpu_arch(ret);
+				display_cpu_arch(swapi(ret));
 				trigger = 1;				
 				printf(" mach-o binary\n");
 			} else {
