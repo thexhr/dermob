@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.11 2006/08/09 12:23:37 matthias Exp $ */
+/* $Id: dermob.c,v 1.12 2006/08/09 16:15:50 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -135,7 +135,7 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	
 	mprintf(" Magic:		0x%x\n", swapi(mh->magic));
 	mprintf(" CPU Type:	");
-	display_cpu_arch(NXSwapInt(mh->cputype));
+	display_cpu_arch(swapi(mh->cputype));
 	ret = mh->cputype;
 	mprintf("\n");	
 	mprintf(" Subtype:	%d\n", swapi(mh->cpusubtype));
@@ -352,24 +352,32 @@ void
 display_text_section(char *buffer, int addr, int offset, int size)
 {
 	char *ptr;
+	char line[17];
 	int i, j=0;
 	
 	if (offset <= 0)
 		return;
 
-	//printf("Addr: %x offset %x (%d) size %d\n", addr, offset, offset, size);
 	
 	ptr = buffer;
 	ptr += offset;
-			
+
 	for (i=0; i<size; i++) {
 		if (j == 0) printf("0x%.08x ", offset+i);
 		j++;
 		printf("%.02x ", (*ptr & 0xFF));
+
+		if (isprint(*ptr & 0xFF))
+			line[j-1] = (*ptr & 0xFF);
+		else
+			line[j-1] = '.';
+
 		if (j == 16) {
+			printf(" %s", line);
 			printf("\n");
 			j = 0;
-		}
+		} else if (j == 8)
+			printf(" ");
 		ptr+=1;
 	}
 	printf("\n");
