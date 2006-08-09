@@ -1,6 +1,7 @@
 #ifndef __DERMOB_H
 #define __DERMOB_H
 
+#include <ctype.h>
 #include <err.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -29,6 +30,10 @@ int trigger;
 int text_offset;
 int text_size;
 int text_addr;
+
+int data_offset;
+int data_size;
+int data_addr;
 
 // display shared libraries
 int dynamic;
