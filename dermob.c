@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.5 2006/08/09 09:46:58 matthias Exp $ */
+/* $Id: dermob.c,v 1.6 2006/08/09 09:57:20 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -217,6 +217,7 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 	struct dylib_command *dly;
 	struct dylinker_command *dlnk;
 	struct dysymtab_command *dsym;
+	struct twolevel_hints_command *two;
 	time_t timev;
 	
 	int ret = 0;
@@ -294,6 +295,14 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			//mprintf("  Name:	%x\n", dlnk->name.offset);
 			ret = sizeof(*dsym);
 			free(dsym);
+			break;
+		case LC_TWOLEVEL_HINTS:
+			two = malloc(sizeof(*two));
+			memcpy(two, ptr, sizeof(*two));
+			mprintf("  Offset:		%d\n", two->offset);
+			mprintf("  No of 2level hints:	%d\n", two->nhints);			
+			ret = sizeof(*two);
+			free(two);
 			break;
 		case LC_THREAD:
 		case LC_UNIXTHREAD:

@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.2 2006/08/09 09:23:56 matthias Exp $ */
+/* $Id: util.c,v 1.3 2006/08/09 09:57:20 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -44,6 +44,8 @@ display_cmd_name(int cmd)
 			mprintf("LC_DYSYMTAB\n"); break;
 		case LC_UNIXTHREAD:
 			mprintf("LC_UNIXTHREAD\n"); break;
+		case LC_TWOLEVEL_HINTS:
+			mprintf("LC_TWOLEVEL_HINTS\n"); break;		
 		default:
 			mprintf("\n"); break;
 	}
