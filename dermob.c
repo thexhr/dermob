@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.10 2006/08/09 12:17:26 matthias Exp $ */
+/* $Id: dermob.c,v 1.11 2006/08/09 12:23:37 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -42,7 +42,7 @@ usage(const char *file)
 }
 
 /*
- * All fields are in Big-Endian Byte Order
+ * Analyse a possible fat header or return silently
  */
 int
 analyse_fat_header(char *buffer, int *offset)
@@ -99,6 +99,10 @@ analyse_fat_header(char *buffer, int *offset)
 	return(ret);
 }
 
+/*
+ * Parse the mach-o header, set the correct byte order ot the binary and
+ * determine the number of load commands.
+ */
 int
 analyse_mo_header(char *buffer, int *offset, int *ncmds)
 {
@@ -116,7 +120,8 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	/* No valid mach-o binary */
 	if (mh->magic != MH_MAGIC && mh->magic != MH_CIGAM)
 		return(ret);
-	
+
+	/* Determine the correct byte order */
 	if (mh->magic == MH_MAGIC && bo_a == NX_LittleEndian)
 		bo_b = LE;
 	else if (mh->magic == MH_CIGAM && bo_a == NX_LittleEndian)
@@ -148,6 +153,9 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	return(ret);
 }
 
+/*
+ * Analyse all load commands
+ */
 void
 analyse_load_command(char *buffer, int offset, int ncmds)
 {
@@ -172,6 +180,8 @@ analyse_load_command(char *buffer, int offset, int ncmds)
 	
 		offset += swapi(ld->cmdsize);
 		val = examine_segmet(buffer, ptr, swapi(ld->cmd), swapi(ld->cmdsize), &nofx);
+		
+		/* The segment contains sections */
 		if (nofx > 0) 
 			examine_section(buffer, ptr, val, nofx);
 			
@@ -184,6 +194,9 @@ analyse_load_command(char *buffer, int offset, int ncmds)
 	free(ld);
 }
 
+/*
+ * Examine the different sections and display various information.
+ */
 void
 examine_section(char *buffer, char *ptr, int val, int nofx)
 {
@@ -214,6 +227,9 @@ examine_section(char *buffer, char *ptr, int val, int nofx)
 	free(sec);
 }
 
+/*
+ * Examine the different segments and display various information.
+ */
 int
 examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 {
@@ -328,6 +344,10 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 	return (ret);
 }
 
+/*
+ * Display the __TEXT,__text section (the actual machine code) as hexadecimal
+ * values on screen.
+ */
 void
 display_text_section(char *buffer, int addr, int offset, int size)
 {

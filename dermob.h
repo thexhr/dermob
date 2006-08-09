@@ -23,14 +23,22 @@
 #define BE	0
 #define LE	1
 
+// Trigger text display on/off
 int trigger;
+// Offset, size and address of __TEXT, __text section
 int text_offset;
 int text_size;
 int text_addr;
+
+// display shared libraries
 int dynamic;
 int dyn_display;
+
+// Machine CPU type
 int cpu;
+// Machine byte order
 int bo_a;
+// Binary byte order
 int bo_b;
 
 /* util.c */
