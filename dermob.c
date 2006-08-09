@@ -24,22 +24,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.2 2006/08/08 18:16:54 matthias Exp $ */
+/* $Id: dermob.c,v 1.3 2006/08/09 08:27:47 matthias Exp $ */
 
 #include "dermob.h"
 
-void
-mprintf(const char *fmt, ...)
-{
-        va_list ap;
-        
-	if (trigger == 1)
-		return;
 
-	va_start(ap, fmt);
-	vfprintf(stdout, fmt, ap);
-	va_end(ap);
-}
 
 void
 usage(const char *file)
@@ -91,7 +80,8 @@ analyse_fat_header(char *buffer, int *offset)
 	for (i = 0; i < htonl(fh->nfat_arch); i++) {
 		memcpy(fa, ptr, sizeof(*fa));
 		mprintf(" Architecture %d\n", i);
-		mprintf("   CPU Type:	%d\n", htonl(fa->cputype));
+		mprintf("   CPU Type:	");
+		display_cpu_arch(htonl(fa->cputype));
 		mprintf("     Subtype:	%d\n", htonl(fa->cpusubtype));
 		mprintf("   Offest:	%d\n", htonl(fa->offset));
 		mprintf("   Size:	%d\n", htonl(fa->size));
@@ -127,7 +117,8 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	mprintf("Mach-o header starting at 0x%.08x\n\n", *offset);
 	
 	mprintf(" Magic:		0x%x\n", mh->magic);
-	mprintf(" CPU Type:	%d\n", mh->cputype);
+	mprintf(" CPU Type:	");
+	display_cpu_arch(mh->cputype);
 	mprintf("   Subtype:	%d\n", mh->cpusubtype);
 	mprintf(" Filetype:	0x%x\n", mh->filetype);
 	mprintf(" No load cmds:	%d cmds\n", mh->ncmds);
@@ -139,34 +130,6 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 	*offset += sizeof(*mh);
 	
 	free(mh);
-}
-
-void
-display_cmd_name(int cmd)
-{
-	switch(cmd) {
-		case LC_SEGMENT:
-			mprintf("LC_SEGMENT\n");
-			break;		
-		case LC_SYMTAB:
-			mprintf("LC_SYMTAB\n");
-			break;		
-		case LC_LOAD_DYLIB:
-			mprintf("LC_LOAD_DYLIB\n");
-			break;		
-		case LC_LOAD_DYLINKER:
-			mprintf("LC_LOAD_DYLINKER\n");
-			break;
-		case LC_DYSYMTAB:
-			mprintf("LC_DYSYMTAB\n");
-			break;
-		case LC_UNIXTHREAD:
-			mprintf("LC_UNIXTHREAD\n");
-			break;
-		default:
-			mprintf("\n");
-			break;
-	}
 }
 
 void
@@ -344,6 +307,8 @@ main (int argc, char **argv)
 	struct stat sb;
 	char *buffer, ch;
 	int fd, len=1, offset = 0, ncmds = 0, flag = 0;
+	
+	trigger = 0;
 	
 	if (argc < 2) {
 		usage(argv[0]);

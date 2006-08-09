@@ -1,3 +1,6 @@
+#ifndef __DERMOB_H
+#define __DERMOB_H
+
 #include <err.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -17,10 +20,18 @@
 #include <mach-o/fat.h>
 #include <mach/machine.h>
 
-int trigger = 0;
-int text_offset = 0;
-int text_size = 0;
-int text_addr = 0;
+int trigger;
+int text_offset;
+int text_size;
+int text_addr;
 
+/* util.c */
+extern void display_cmd_name(int);
+extern void display_cpu_arch(int);
+extern void mprintf(const char *fmt, ...);
+
+/* dermob.c */
 extern int examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx);
 extern void examine_section(char *buffer, char *ptr, int val, int nofx);
+
+#endif
