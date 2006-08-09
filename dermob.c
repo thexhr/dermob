@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.7 2006/08/09 10:17:32 matthias Exp $ */
+/* $Id: dermob.c,v 1.8 2006/08/09 10:41:02 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -253,11 +253,18 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			dynamic = 1;
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
-			mprintf("  Name:			%s\n", ptr+dly->dylib.name.offset);
-			timev = dly->dylib.timestamp;
-			mprintf("  Timestamp:		%s", ctime(&timev));
-			mprintf("  Current version:	0x%x\n", dly->dylib.current_version);
-			mprintf("  Compat version:	0x%x\n", dly->dylib.compatibility_version);
+			if (dyn_display < 1) {
+				mprintf("  Name:			%s\n", ptr+dly->dylib.name.offset);
+				timev = dly->dylib.timestamp;
+				mprintf("  Timestamp:		%s", ctime(&timev));
+				mprintf("  Current version:	0x%x\n", dly->dylib.current_version);
+				mprintf("  Compat version:	0x%x\n", dly->dylib.compatibility_version);
+			} else {
+				trigger = 0;
+				mprintf("   + %s\n", ptr+dly->dylib.name.offset);
+				trigger = 1;
+			}
+			
 			ret = sizeof(*dly);
 			free(dly);
 			break;
@@ -352,6 +359,7 @@ main (int argc, char **argv)
 	
 	trigger = 0;
 	dynamic = 0;
+	dyn_display = 0;
 	
 	if (argc < 2) {
 		usage(argv[0]);
@@ -412,21 +420,21 @@ main (int argc, char **argv)
 			trigger = 1;
 			ret = analyse_fat_header(buffer, &offset);
 			if (ret > 0)
-				printf("Universal Binary for %d architectures, ", ret);
+				printf("- Universal Binary for %d architectures\n", ret);
 			ret = analyse_mo_header(buffer, &offset, &ncmds);
 			if (ret > 0) {
-				printf("Vaild ");
+				printf("- Vaild ");
 				trigger = 0;
 				display_cpu_arch(ret);
 				trigger = 1;				
-				printf(" mach-o binary, ");
+				printf(" mach-o binary\n");
 			} else {
 				printf("No mach-o file\n");
 				exit(1);
 			}
+			dyn_display = 1;
 			analyse_load_command(buffer, offset, ncmds);
-			printf("%s linked ", dynamic ? "dynamically" : "statically");
-			printf("\n");
+			printf("%s", dynamic ? "" : "- Statically linked\n");
 			break;
 	}
 

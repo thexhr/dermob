@@ -25,6 +25,7 @@ int text_offset;
 int text_size;
 int text_addr;
 int dynamic;
+int dyn_display;
 
 /* util.c */
 extern void display_cmd_name(int);
