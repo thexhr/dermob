@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.4 2006/08/09 09:23:56 matthias Exp $ */
+/* $Id: dermob.c,v 1.5 2006/08/09 09:46:58 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -216,6 +216,8 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 	struct symtab_command *symc;
 	struct dylib_command *dly;
 	struct dylinker_command *dlnk;
+	struct dysymtab_command *dsym;
+	time_t timev;
 	
 	int ret = 0;
 	
@@ -252,7 +254,8 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
 			//mprintf("  Name:			%s\n", dly->dylib.name);
-			mprintf("  Timestamp:		%d\n", dly->dylib.timestamp);
+			timev = dly->dylib.timestamp;
+			mprintf("  Timestamp:		%s", ctime(&timev));
 			mprintf("  Current version:	%d\n", dly->dylib.current_version);
 			mprintf("  Compat version:	%d\n", dly->dylib.compatibility_version);
 			ret = sizeof(*dly);
@@ -267,11 +270,33 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			free(dlnk);
 			break;
 		case LC_DYSYMTAB:
-			mprintf("dysymtab\n");
+			dsym = malloc(sizeof(*dsym));
+			memcpy(dsym, ptr, sizeof(*dsym));
+			mprintf("  ilocalsym:		%d\n", dsym->ilocalsym);
+			mprintf("  nlocalsym:		%d\n", dsym->nlocalsym);
+			mprintf("  iextdefsym:		%d\n", dsym->iextdefsym);
+			mprintf("  nextdefsym:		%d\n", dsym->nextdefsym);
+			mprintf("  iundefsym:		%d\n", dsym->iundefsym);
+			mprintf("  nundefsym:		%d\n", dsym->nundefsym);
+			mprintf("  tocoff:		%d\n", dsym->tocoff);
+			mprintf("  ntoc:			%d\n", dsym->ntoc);
+			mprintf("  modtaboff:		%d\n", dsym->modtaboff);
+			mprintf("  nmodtab:		%d\n", dsym->nmodtab);
+			mprintf("  extrefsymoff:		%d\n", dsym->extrefsymoff);
+			mprintf("  nextrefsyms:		%d\n", dsym->nextrefsyms);
+			mprintf("  indirectsymoff:	%d\n", dsym->indirectsymoff);
+			mprintf("  nindirectsyms:	%d\n", dsym->nindirectsyms);
+			mprintf("  extreloff:		%d\n", dsym->extreloff);
+			mprintf("  nextrel:		%d\n", dsym->nextrel);
+			mprintf("  locreloff:		%d\n", dsym->locreloff);
+			mprintf("  nlocrel:		%d\n", dsym->nlocrel);
+			mprintf("  Cmd:		%d\n", dlnk->cmd);
+			//mprintf("  Name:	%x\n", dlnk->name.offset);
+			ret = sizeof(*dsym);
+			free(dsym);
 			break;
 		case LC_THREAD:
 		case LC_UNIXTHREAD:
-			mprintf("thread\n");
 			break;
 		case LC_ROUTINES:
 			mprintf("routines\n");
