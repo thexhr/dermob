@@ -18,7 +18,8 @@ MANDIR = $(PREFIX)/share/man
 BIN=dermob
 OBJS= \
 	util.o \
-	dermob.o
+	dermob.o \
+	dermob-cli.o
 
 
 all: $(BIN)
