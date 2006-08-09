@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.6 2006/08/09 09:57:20 matthias Exp $ */
+/* $Id: dermob.c,v 1.7 2006/08/09 10:17:32 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -219,7 +219,6 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 	struct dysymtab_command *dsym;
 	struct twolevel_hints_command *two;
 	time_t timev;
-	
 	int ret = 0;
 	
 	switch(cmd) {
@@ -254,19 +253,18 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			dynamic = 1;
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
-			//mprintf("  Name:			%s\n", dly->dylib.name);
+			mprintf("  Name:			%s\n", ptr+dly->dylib.name.offset);
 			timev = dly->dylib.timestamp;
 			mprintf("  Timestamp:		%s", ctime(&timev));
-			mprintf("  Current version:	%d\n", dly->dylib.current_version);
-			mprintf("  Compat version:	%d\n", dly->dylib.compatibility_version);
+			mprintf("  Current version:	0x%x\n", dly->dylib.current_version);
+			mprintf("  Compat version:	0x%x\n", dly->dylib.compatibility_version);
 			ret = sizeof(*dly);
 			free(dly);
 			break;
 		case LC_LOAD_DYLINKER:
 			dlnk = malloc(sizeof(*dlnk));
 			memcpy(dlnk, ptr, sizeof(*dlnk));
-			mprintf("  Cmd:		%d\n", dlnk->cmd);
-			//mprintf("  Name:	%x\n", dlnk->name.offset);
+			mprintf("  Name:		%s\n", ptr+dlnk->name.offset);
 			ret = sizeof(*dlnk);
 			free(dlnk);
 			break;
@@ -291,8 +289,6 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
 			mprintf("  nextrel:		%d\n", dsym->nextrel);
 			mprintf("  locreloff:		%d\n", dsym->locreloff);
 			mprintf("  nlocrel:		%d\n", dsym->nlocrel);
-			mprintf("  Cmd:		%d\n", dlnk->cmd);
-			//mprintf("  Name:	%x\n", dlnk->name.offset);
 			ret = sizeof(*dsym);
 			free(dsym);
 			break;
