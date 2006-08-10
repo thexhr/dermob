@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.21 2006/08/10 16:50:07 matthias Exp $ */
+/* $Id: dermob.c,v 1.22 2006/08/10 17:05:49 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -190,7 +190,7 @@ void
 examine_section(char *buffer, char *ptr, int val, int nofx)
 {
 	struct section *sec;
-	int j,foo=0;
+	int j;
 	
 	sec = malloc(sizeof(*sec));
 		
@@ -205,15 +205,7 @@ examine_section(char *buffer, char *ptr, int val, int nofx)
 			text_size = swapi(sec->size);
 			text_offset = swapi(sec->offset);
 		}
-		if ((memcmp(sec->segname, "__OBJC", 6) == 0) &&
-		    (memcmp(sec->sectname, "__class", 6) == 0) && foo != 1) {
-			printf("fffff\n");
-			data_addr = swapi(sec->addr);
-			data_size = swapi(sec->size);
-			data_offset = swapi(sec->offset);
-			foo=1;
-		}
-		
+				
 		mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
 		mprintf("    VM size:	%d bytes\n", swapi(sec->size));
 		mprintf("    Offset:	%d\n", swapi(sec->offset));
