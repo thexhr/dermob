@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.17 2006/08/10 08:31:10 matthias Exp $ */
+/* $Id: dermob.c,v 1.18 2006/08/10 14:16:18 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -354,7 +354,7 @@ display_buffer(char *buffer, int addr, int offset, int size)
 	if (offset < 0)
 		return;
 
-	printf("addr %x offset %d size %d\n", addr, offset, size);
+	//printf("addr %x offset %d size %d\n", addr, offset, size);
 	
 	ptr = buffer;
 	ptr += offset;
