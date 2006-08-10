@@ -24,18 +24,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.1 2006/08/09 16:51:35 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.2 2006/08/10 08:07:31 matthias Exp $ */
 
 #include "dermob.h"
 
 void
 usage(const char *file)
 {
-	printf("Usage: 	%s [-uhc] <binary>\n", file);
-	printf("	-u:  Display universal header\n");
-	printf("	-h:  Display mach-o header\n");
+	printf("Usage: 	%s [-chtux] <binary>\n", file);
 	printf("	-c:  Display complete header\n");
-	printf("	-t:  Display __TEXT,__text section\n");
+	printf("	-h:  Display mach-o header\n");
+	printf("	-t:  Display __TEXT,__text section\n");	
+	printf("	-u:  Display universal header\n");
+	printf("	-x:  Display hexdump\n");
 	exit(1);
 }
 
@@ -54,12 +55,13 @@ main (int argc, char **argv)
 		usage(argv[0]);
 	}
 	
-	while ((ch = getopt(argc, argv, "uhct")) != -1) {
+	while ((ch = getopt(argc, argv, "uhctx")) != -1) {
 		switch (ch) {
 		case 'u': flag |= 0x1; break;
 		case 'h': flag |= 0x2; break;
 		case 'c': flag |= 0x4; break;
 		case 't': flag |= 0x8; break;
+		case 'x': flag |= 0x16; break;		
 		default: usage(argv[0]); break;
 		}
 	}
@@ -106,7 +108,10 @@ main (int argc, char **argv)
 			analyse_mo_header(buffer, &offset, &ncmds);
 			analyse_load_command(buffer, offset, ncmds);
 			trigger = 0;
-			display_text_section(buffer, text_addr, text_offset, text_size);
+			display_buffer(buffer, text_addr, text_offset, text_size);
+			break;
+		case 0x16:
+			display_buffer(buffer, 0, 0, len);
 			break;
 		default:
 			trigger = 1;

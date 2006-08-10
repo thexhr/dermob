@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.15 2006/08/10 07:56:56 matthias Exp $ */
+/* $Id: dermob.c,v 1.16 2006/08/10 08:07:31 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -345,13 +345,13 @@ examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx)
  * values on screen.
  */
 void
-display_text_section(char *buffer, int addr, int offset, int size)
+display_buffer(char *buffer, int addr, int offset, int size)
 {
 	char *ptr;
 	char line[16];
 	int i, j=0;
 	
-	if (offset <= 0)
+	if (offset < 0)
 		return;
 
 	printf("addr %x offset %d size %d\n", addr, offset, size);
@@ -373,8 +373,7 @@ display_text_section(char *buffer, int addr, int offset, int size)
 			line[j-1] = '.';
 
 		if (j == 16) {
-			printf(" %s", line);
-			printf("\n");
+			printf(" %s\n", line);
 			j = 0;
 		} else if (j == 8)
 			printf(" ");
