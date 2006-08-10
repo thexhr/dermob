@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.16 2006/08/10 08:07:31 matthias Exp $ */
+/* $Id: dermob.c,v 1.17 2006/08/10 08:31:10 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -348,7 +348,7 @@ void
 display_buffer(char *buffer, int addr, int offset, int size)
 {
 	char *ptr;
-	char line[16];
+	char line[17];
 	int i, j=0;
 	
 	if (offset < 0)
@@ -361,23 +361,23 @@ display_buffer(char *buffer, int addr, int offset, int size)
 	// Skip the fat header, if necessarry
 	ptr += offset_moh;
 	offset += offset_moh;
-	
-	for (i=0; i<size; i++) {
-		if (j == 0) printf("%.08x  ", offset+i);
-		j++;
+
+	for (i = 0; i < size; i++) {
+		if (j == 0) 
+			printf("%.08x  ", offset+i);
 		printf("%.02x ", (*ptr & 0xFF));
 
 		if (isprint(*ptr & 0xFF))
-			line[j-1] = (*ptr & 0xFF);
+			line[j] = (*ptr & 0xFF);
 		else
-			line[j-1] = '.';
-
+			line[j] = '.';
+		j++;
 		if (j == 16) {
 			printf(" %s\n", line);
 			j = 0;
 		} else if (j == 8)
 			printf(" ");
-		ptr+=1;
+		ptr += 1;
 	}
 	printf("\n");
 }
