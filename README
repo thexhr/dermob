@@ -15,3 +15,6 @@ Usage:  dermob [-chtux] <binary>
         -t:  Display __TEXT,__text section
         -u:  Display universal header
         -x:  Display hexdump
+
+dermob was sucessfully tested under Mac OS X 10.4 and FreeBSD 6.  Other
+Operating Systems may, or may not, work.  Good luck.
