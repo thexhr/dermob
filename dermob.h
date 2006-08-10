@@ -12,14 +12,10 @@
 
 #include <sys/uio.h>
 #include <sys/stat.h>
+#include <sys/sysctl.h>
 #include <sys/types.h>
 
 #include <arpa/inet.h>
-
-#include <mach-o/arch.h>
-#include <mach-o/loader.h>
-#include <mach-o/fat.h>
-#include <mach/machine.h>
 
 #define BE	0
 #define LE	1

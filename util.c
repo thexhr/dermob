@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.7 2006/08/10 15:44:35 matthias Exp $ */
+/* $Id: util.c,v 1.8 2006/08/10 16:44:04 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -93,31 +93,42 @@ mprintf(const char *fmt, ...)
 int
 get_cpu_information()
 {
-	const NXArchInfo *na;
-	int ret = 0;
+	char buf[50];
+	int mib[2];
+	size_t len;
+		
+	mib[0] = CTL_HW;
+	mib[1] = HW_MACHINE;
+	len = sizeof(buf);
+	if (sysctl(mib, 2, &buf, &len, NULL, 0) < 0)
+		errx(1, "Cannot determine local CPU type");
 	
-	if ((na = NXGetLocalArchInfo()) == NULL)  {
-		printf("CPU architecture unknown.\n");
-		return(ret);
-	}
-	
-	ret = na->cputype;		
-	return(ret);
+	if (strncmp(buf, "i386", 4) == 0)
+		return(CPU_TYPE_X86);
+	else if (strncmp(buf, "Power Macintosh", 15) == 0)
+		return(CPU_TYPE_POWERPC);
+
+	return(-1);
 }
 
 int
 get_bo_information()
 {
-	const NXArchInfo *na;
-	int ret = 0;
+	int mib[2], bo;
+	size_t len;
 	
-	if ((na = NXGetLocalArchInfo()) == NULL)  {
-		printf("CPU architecture unknown.\n");
-		return(ret);
-	}
+	mib[0] = CTL_HW;
+	mib[1] = HW_BYTEORDER;
+	len = sizeof(bo);
+	if (sysctl(mib, 2, &bo, &len, NULL, 0) < 0)
+		errx(1, "Cannot determine local byte order");
 	
-	ret = na->byteorder;
-	return(ret);
+	if (bo == 1234)
+		return(LE);
+	else if (bo == 4321)
+		return(BE);
+
+	return(-1);
 }
 
 unsigned int

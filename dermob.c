@@ -24,9 +24,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.19 2006/08/10 14:23:04 matthias Exp $ */
+/* $Id: dermob.c,v 1.20 2006/08/10 16:44:04 matthias Exp $ */
 
 #include "dermob.h"
+#include "mach.h"
 
 /*
  * Analyse a possible fat header or return silently
