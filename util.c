@@ -24,9 +24,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.6 2006/08/10 15:32:12 matthias Exp $ */
+/* $Id: util.c,v 1.7 2006/08/10 15:44:35 matthias Exp $ */
 
 #include "dermob.h"
+#include "mach.h"
 
 #define swap_bo(i) \
 	(((i & 0xFF000000) >> 24) | \
@@ -67,8 +68,10 @@ display_cpu_arch(int cputype)
 			mprintf("x86"); break;
 		case CPU_TYPE_POWERPC:
 			mprintf("PowerPC"); break;
-		case CPU_TYPE_POWERPC64:
-			mprintf("PowerPC 64"); break;
+		case CPU_TYPE_HPPA:
+			mprintf("HPPA"); break;
+		case CPU_TYPE_SPARC:
+			mprintf("Sparc"); break;
 		default:
 			mprintf("\n"); break;
 	}
