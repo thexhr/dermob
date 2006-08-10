@@ -24,9 +24,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.5 2006/08/10 14:23:04 matthias Exp $ */
+/* $Id: util.c,v 1.6 2006/08/10 15:32:12 matthias Exp $ */
 
 #include "dermob.h"
+
+#define swap_bo(i) \
+	(((i & 0xFF000000) >> 24) | \
+	((i & 0x00FF0000) >> 8) | \
+	((i & 0x0000FF00) << 8) | \
+	((i & 0x000000FF) << 24));
 
 void
 display_cmd_name(int cmd)
@@ -111,11 +117,11 @@ get_bo_information()
 	return(ret);
 }
 
-int
-swapi(int i)
+unsigned int
+swapi(unsigned int i)
 {
 	if (bo_a == NX_LittleEndian && bo_b == BE)
-		return(NXSwapInt(i));
-	else
-		return(i);
+		return swap_bo(i);
+	
+	return(i);
 }

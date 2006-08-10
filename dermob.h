@@ -57,7 +57,7 @@ extern int get_bo_information();
 /* dermob.c */
 extern int examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx);
 extern void examine_section(char *buffer, char *ptr, int val, int nofx);
-extern int swapi(int i);
+extern unsigned int swapi(unsigned int i);
 extern void analyse_load_command(char *buffer, int offset, int ncmds);
 extern void display_buffer(char *buffer, int addr, int offset, int size);
 extern int analyse_fat_header(char *buffer, int *offset);
