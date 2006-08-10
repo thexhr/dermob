@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.9 2006/08/10 16:50:07 matthias Exp $ */
+/* $Id: util.c,v 1.10 2006/08/10 17:00:46 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
