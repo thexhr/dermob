@@ -1,0 +1,17 @@
+.__        _____.__       .__  __       ____   ____________  .___________   
+|__| _____/ ____\__| ____ |__|/  |_  ___\   \ /   /\_____  \ |   \______ \  
+|  |/    \   __\|  |/    \|  \   __\/ __ \   Y   /  /   |   \|   ||    |  \ 
+|  |   |  \  |  |  |   |  \  ||  | \  ___/\     /  /    |    \   ||    `   \
+|__|___|  /__|  |__|___|  /__||__|  \___  >\___/   \_______  /___/_______  /
+        \/              \/              \/                 \/            \/
+
+dermob -- mach-o binary analyzer
+	(c) 2006 by xhr () staatsfeind . org
+
+
+Usage:  dermob [-chtux] <binary>
+        -c:  Display complete header
+        -h:  Display mach-o header
+        -t:  Display __TEXT,__text section
+        -u:  Display universal header
+        -x:  Display hexdump

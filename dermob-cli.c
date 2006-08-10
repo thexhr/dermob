@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Matthias Schmidt <matthias @ staatsfeind . org>
+ * Copyright (c) 2006 Matthias Schmidt <xhr @ staatsfeind . org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.2 2006/08/10 08:07:31 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.3 2006/08/10 14:23:04 matthias Exp $ */
 
 #include "dermob.h"
 
