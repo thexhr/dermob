@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.14 2006/08/09 16:59:29 matthias Exp $ */
+/* $Id: dermob.c,v 1.15 2006/08/10 07:56:56 matthias Exp $ */
 
 #include "dermob.h"
 
@@ -117,7 +117,8 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 		bo_b = BE;
 	else if (mh->magic == MH_CIGAM && bo_a != NX_LittleEndian)
 		bo_b = LE;
-	
+
+	offset_moh = *offset;
 	mprintf("Mach-o header starting at 0x%.08x\n\n", *offset);
 	
 	mprintf(" Magic:		0x%x\n", swapi(mh->magic));
@@ -357,7 +358,10 @@ display_text_section(char *buffer, int addr, int offset, int size)
 	
 	ptr = buffer;
 	ptr += offset;
-
+	// Skip the fat header, if necessarry
+	ptr += offset_moh;
+	offset += offset_moh;
+	
 	for (i=0; i<size; i++) {
 		if (j == 0) printf("%.08x  ", offset+i);
 		j++;

@@ -34,6 +34,8 @@ int data_offset;
 int data_size;
 int data_addr;
 
+int offset_moh;
+
 // display shared libraries
 int dynamic;
 int dyn_display;
