@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.8 2006/08/10 16:44:04 matthias Exp $ */
+/* $Id: util.c,v 1.9 2006/08/10 16:50:07 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -134,7 +134,7 @@ get_bo_information()
 unsigned int
 swapi(unsigned int i)
 {
-	if (bo_a == NX_LittleEndian && bo_b == BE)
+	if (bo_a == LE && bo_b == BE)
 		return swap_bo(i);
 	
 	return(i);

@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.20 2006/08/10 16:44:04 matthias Exp $ */
+/* $Id: dermob.c,v 1.21 2006/08/10 16:50:07 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -110,13 +110,13 @@ analyse_mo_header(char *buffer, int *offset, int *ncmds)
 		return(ret);
 
 	/* Determine the correct byte order */
-	if (mh->magic == MH_MAGIC && bo_a == NX_LittleEndian)
+	if (mh->magic == MH_MAGIC && bo_a == LE)
 		bo_b = LE;
-	else if (mh->magic == MH_CIGAM && bo_a == NX_LittleEndian)
+	else if (mh->magic == MH_CIGAM && bo_a == LE)
 		bo_b = BE;
-	else if (mh->magic == MH_MAGIC && bo_a != NX_LittleEndian)
+	else if (mh->magic == MH_MAGIC && bo_a != LE)
 		bo_b = BE;
-	else if (mh->magic == MH_CIGAM && bo_a != NX_LittleEndian)
+	else if (mh->magic == MH_CIGAM && bo_a != LE)
 		bo_b = LE;
 
 	offset_moh = *offset;
