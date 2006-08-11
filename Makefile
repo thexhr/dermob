@@ -5,8 +5,8 @@ RM = rm -f
 INSTALL = install
 STRIP = strip
 
-CFLAGS = -c -Wall -Wno-unused -Os -fomit-frame-pointer
-LDFLAGS = -Os
+CFLAGS = -c -Wall -Wno-unused -O2 -fomit-frame-pointer
+LDFLAGS = -O2
 
 #CFLAGS = -c -Wall -g3 -ggdb
 #LDFLAGS = -Wall -g3 -ggdb
