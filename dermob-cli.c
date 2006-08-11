@@ -24,9 +24,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.3 2006/08/10 14:23:04 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.4 2006/08/11 16:48:39 matthias Exp $ */
 
 #include "dermob.h"
+#include "mach.h"
+#include "defs.h"
 
 void
 usage(const char *file)
@@ -85,28 +87,29 @@ main (int argc, char **argv)
 	
 	switch (flag) {
 		case 0x1:
-			analyse_fat_header(buffer, &offset);
+			trigger = 0;
+			display_fat_header(buffer, &offset);
 			break;
 		case 0x2:
 			trigger = 1;
-			analyse_fat_header(buffer, &offset);
+			display_fat_header(buffer, &offset);
 			trigger = 0;
-			analyse_mo_header(buffer, &offset, &ncmds);
+			display_mo_header(buffer, &offset, &ncmds);
 			break;
 		case 0x3:
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
+			display_fat_header(buffer, &offset);
+			display_mo_header(buffer, &offset, &ncmds);
 			break;
 		case 0x4:
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
-			analyse_load_command(buffer, offset, ncmds);
+			display_fat_header(buffer, &offset);
+			display_mo_header(buffer, &offset, &ncmds);
+			display_load_commands(buffer, &offset, ncmds);
 			break;
 		case 0x8:
 			trigger = 1;
-			analyse_fat_header(buffer, &offset);
-			analyse_mo_header(buffer, &offset, &ncmds);
-			analyse_load_command(buffer, offset, ncmds);
+			display_fat_header(buffer, &offset);
+			display_mo_header(buffer, &offset, &ncmds);
+			display_load_commands(buffer, &offset, ncmds);
 			trigger = 0;
 			display_buffer(buffer, text_addr, text_offset, text_size);
 			break;
@@ -115,22 +118,18 @@ main (int argc, char **argv)
 			break;
 		default:
 			trigger = 1;
-			ret = analyse_fat_header(buffer, &offset);
+			ret = display_fat_header(buffer, &offset);
 			if (ret > 0)
 				printf("- Universal Binary for %d architectures\n", ret);
-			ret = analyse_mo_header(buffer, &offset, &ncmds);
+			ret = display_mo_header(buffer, &offset, &ncmds);
 			if (ret > 0) {
-				printf("- Vaild ");
-				trigger = 0;
-				display_cpu_arch(swapi(ret));
-				trigger = 1;				
-				printf(" mach-o binary\n");
+				printf("- Vaild mach-o binary\n");
 			} else {
 				printf("No mach-o file\n");
 				exit(1);
 			}
 			dyn_display = 1;
-			analyse_load_command(buffer, offset, ncmds);
+			display_load_commands(buffer, &offset, ncmds);
 			printf("%s", dynamic ? "" : "- Statically linked\n");
 			break;
 	}

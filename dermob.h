@@ -43,19 +43,4 @@ int bo_a;
 // Binary byte order
 int bo_b;
 
-/* util.c */
-extern void display_cmd_name(int);
-extern void display_cpu_arch(int);
-extern void mprintf(const char *fmt, ...);
-extern int get_cpu_information();
-extern int get_bo_information();
-
-/* dermob.c */
-extern int examine_segmet(char *buffer, char *ptr, int cmd, int cmdsize, int *nofx);
-extern void examine_section(char *buffer, char *ptr, int val, int nofx);
-extern unsigned int swapi(unsigned int i);
-extern void analyse_load_command(char *buffer, int offset, int ncmds);
-extern void display_buffer(char *buffer, int addr, int offset, int size);
-extern int analyse_fat_header(char *buffer, int *offset);
-extern int analyse_mo_header(char *buffer, int *offset, int *ncmds);
 #endif

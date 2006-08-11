@@ -24,16 +24,171 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.10 2006/08/10 17:00:46 matthias Exp $ */
+/* $Id: util.c,v 1.11 2006/08/11 16:48:39 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
+#include "defs.h"
 
 #define swap_bo(i) \
 	(((i & 0xFF000000) >> 24) | \
 	((i & 0x00FF0000) >> 8) | \
 	((i & 0x0000FF00) << 8) | \
 	((i & 0x000000FF) << 24));
+
+int
+display_fat_header(char *buffer, int *roffset)
+{
+	struct fat_header *fh;
+	struct fat_arch *fa;
+	int offset = 0, i, narch;
+	
+	fh = malloc(sizeof(*fh));
+
+	if (analyse_fat_header(buffer, &offset, fh) < 0) {
+		free(fh);
+		return(-1);
+	}
+	
+	print_fat_header(fh);
+	fa = malloc(sizeof(*fa));
+	cpu = get_cpu_information();
+
+	narch = swapi(fh->nfat_arch);
+	for (i = 0; i < narch; i++) {
+		mprintf(" Architecture %d\n", i);
+		analyse_fat_arch(buffer, &offset, fa);
+
+		if (cpu == swapi(fa->cputype))
+			*roffset = swapi(fa->offset);
+
+		print_fat_arch(fa);
+	}
+
+	free(fh);
+	free(fa);
+	
+	return(narch);
+}
+
+int
+display_mo_header(char *buffer, int *offset, int *ncmds)
+{
+	struct mach_header *mh;
+	
+	mh = malloc(sizeof(*mh));
+	if (analyse_mo_header(buffer, offset, mh) < 0) {
+		free(mh);
+		return(-1);
+	}
+	
+	*ncmds = swapi(mh->ncmds);
+	
+	print_mo_header(mh);
+	free(mh);
+	
+	return(1);
+}
+
+void
+display_load_commands(char *buffer, int *offset, int ncmds)
+{
+	struct load_command *ld;
+	struct section *sec;
+	int i, nofx = 0, val = 0, j, offset_old;
+	
+	ld = malloc(sizeof(*ld));
+	sec = malloc(sizeof(*sec));
+	
+	for (i = 0; i < ncmds; i++) {
+		mprintf("Load command:	%d\n", i);
+		analyse_load_command(buffer, offset, ld);
+		print_load_command(ld);
+		offset_old = *offset;
+		val = examine_segmet(buffer, offset, swapi(ld->cmd), swapi(ld->cmdsize), &nofx);
+		if (nofx > 0) {
+			for (j = 0; j < nofx; j++) {
+				// Skip the segment header
+				if (j == 0) *offset += val;
+				mprintf("Section %d\n", j);
+				examine_section(buffer, offset, sec);
+				print_section(sec);
+			}
+			nofx = 0;
+		}
+		/* XXX Have to fix this
+		 *
+		 * Currently val is the length of the segment.  We need val to
+		 * skip the segment header, if the segment contains sections.
+		 * 
+		 * Would be better to adjust offset in examine_segment for all 
+		 * possible segments (not currently implemented!)
+		 */ 
+		else
+			*offset += swapi(ld->cmdsize);
+
+		//if (*offset == offset_old)
+		//	*offset += swapi(ld->cmdsize);
+	}
+}
+
+void
+print_section(struct section *sec)
+{
+	mprintf("    Sectname:	%s\n", sec->sectname);
+	if ((memcmp(sec->segname, "__TEXT", 7) == 0) &&
+	    (memcmp(sec->sectname, "__text", 7) == 0)) {
+		text_addr = swapi(sec->addr);
+		text_size = swapi(sec->size);
+		text_offset = swapi(sec->offset);
+	}
+	mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
+	mprintf("    VM size:	%d bytes\n", swapi(sec->size));
+	mprintf("    Offset:	%d\n", swapi(sec->offset));
+	mprintf("\n");
+}
+
+void
+print_load_command(struct load_command *ld)
+{
+	mprintf("  Command:	");
+	display_cmd_name(swapi(ld->cmd));
+	mprintf("  Command size:	%d bytes\n", swapi(ld->cmdsize));
+}
+
+void
+print_mo_header(struct mach_header *mh)
+{
+	mprintf(" Magic:		0x%x\n", swapi(mh->magic));
+	mprintf(" CPU Type:	");
+	display_cpu_arch(swapi(mh->cputype));
+	mprintf("\n");	
+	mprintf(" Subtype:	%d\n", swapi(mh->cpusubtype));
+	mprintf(" Filetype:	0x%x\n", swapi(mh->filetype));
+	mprintf(" No load cmds:	%d cmds\n", swapi(mh->ncmds));
+	mprintf(" Size of cmds:	%d bytes\n", swapi(mh->sizeofcmds));
+	mprintf(" Flags:		0x%.08x\n", swapi(mh->flags));
+	mprintf("\n");
+}
+
+void
+print_fat_header(struct fat_header *fh)
+{
+	mprintf(" Magic:		0x%x\n", swapi(fh->magic));
+}
+
+void
+print_fat_arch(struct fat_arch *fa)
+{
+	mprintf("   CPU Type:	(%x) ", swapi(fa->cputype));
+	display_cpu_arch(swapi(fa->cputype));
+	mprintf("\n");
+	mprintf("   Subtype:	%d\n", swapi(fa->cpusubtype));
+	mprintf("   Offest:	%d\n", swapi(fa->offset));
+	mprintf("   Size:	%d\n", swapi(fa->size));
+	mprintf("   Align:	%d\n", swapi(fa->align));
+	mprintf("\n");
+}
 
 void
 display_cmd_name(int cmd)
