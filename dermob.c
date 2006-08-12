@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.24 2006/08/12 10:51:28 matthias Exp $ */
+/* $Id: dermob.c,v 1.25 2006/08/12 13:49:45 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -297,6 +297,8 @@ display_buffer(char *buffer, int addr, int offset, int size)
 	ptr += offset_moh;
 	offset += offset_moh;
 
+	memset(line, 0, 17);
+	
 	for (i = 0; i < size; i++) {
 		if (j == 0) 
 			printf("%.08x  ", offset+i);
