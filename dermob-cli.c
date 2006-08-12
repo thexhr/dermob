@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.5 2006/08/12 10:20:29 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.6 2006/08/12 10:51:28 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -37,6 +37,7 @@ usage(const char *file)
 	printf("	-c:  Display complete header\n");
 	printf("	-d:  Display __DATA,__data section\n");	
 	printf("	-h:  Display mach-o header\n");
+	printf("	-s:  Display __TEXT,__csting section\n");
 	printf("	-t:  Display __TEXT,__text section\n");	
 	printf("	-u:  Display universal header\n");
 	printf("	-x:  Display hexdump\n");
@@ -58,14 +59,15 @@ main (int argc, char **argv)
 		usage(argv[0]);
 	}
 	
-	while ((ch = getopt(argc, argv, "uhctxd")) != -1) {
+	while ((ch = getopt(argc, argv, "uhctxds")) != -1) {
 		switch (ch) {
 		case 'u': flag |= 0x1; break;
 		case 'h': flag |= 0x2; break;
 		case 'c': flag |= 0x4; break;
 		case 't': flag |= 0x8; break;
 		case 'x': flag |= 0x16; break;
-		case 'd': flag |= 0x32; break;		
+		case 'd': flag |= 0x32; break;
+		case 's': flag |= 0x64; break;
 		default: usage(argv[0]); break;
 		}
 	}
@@ -126,15 +128,23 @@ main (int argc, char **argv)
 			trigger = 0;
 			display_buffer(buffer, data_addr, data_offset, data_size);
 			break;
+		case 0x64:
+			trigger = 1;
+			display_fat_header(buffer, &offset);
+			display_mo_header(buffer, &offset, &ncmds);
+			display_load_commands(buffer, &offset, ncmds);
+			trigger = 0;
+			display_buffer(buffer, cs_addr, cs_offset, cs_size);
+			break;
 		default:
 			trigger = 1;
 			ret = display_fat_header(buffer, &offset);
 			if (ret > 0)
 				printf("- Universal Binary for %d architectures\n", ret);
 			ret = display_mo_header(buffer, &offset, &ncmds);
-			if (ret > 0) {
+			if (ret > 0)
 				printf("- Vaild mach-o binary\n");
-			} else {
+			else {
 				printf("No mach-o file\n");
 				exit(1);
 			}

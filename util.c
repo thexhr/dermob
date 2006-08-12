@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.12 2006/08/12 10:20:29 matthias Exp $ */
+/* $Id: util.c,v 1.13 2006/08/12 10:51:28 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -112,6 +112,24 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 				if (j == 0) *offset += val;
 				mprintf("Section %d\n", j);
 				examine_section(buffer, offset, sec);
+				if ((strcmp(sec->segname, "__TEXT") == 0) &&
+				    (strcmp(sec->sectname, "__text") == 0)) {
+					text_addr = swapi(sec->addr);
+					text_size = swapi(sec->size);
+					text_offset = swapi(sec->offset);
+				}
+				if ((strcmp(sec->segname, "__TEXT") == 0) &&
+				    (strcmp(sec->sectname, "__cstring") == 0)) {
+					cs_addr = swapi(sec->addr);
+					cs_size = swapi(sec->size);
+					cs_offset = swapi(sec->offset);
+				}
+				if ((strcmp(sec->segname, "__DATA") == 0) &&
+				    (strcmp(sec->sectname, "__data") == 0)) {
+					data_addr = swapi(sec->addr);
+					data_size = swapi(sec->size);
+					data_offset = swapi(sec->offset);
+				}
 				print_section(sec);
 			}
 			nofx = 0;
@@ -136,18 +154,6 @@ void
 print_section(struct section *sec)
 {
 	mprintf("    Sectname:	%s\n", sec->sectname);
-	if ((memcmp(sec->segname, "__TEXT", 7) == 0) &&
-	    (memcmp(sec->sectname, "__text", 7) == 0)) {
-		text_addr = swapi(sec->addr);
-		text_size = swapi(sec->size);
-		text_offset = swapi(sec->offset);
-	}
-	if ((memcmp(sec->segname, "__DATA", 7) == 0) &&
-	    (memcmp(sec->sectname, "__data", 7) == 0)) {
-		data_addr = swapi(sec->addr);
-		data_size = swapi(sec->size);
-		data_offset = swapi(sec->offset);
-	}
 	mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
 	mprintf("    VM size:	%d bytes\n", swapi(sec->size));
 	mprintf("    Offset:	%d\n", swapi(sec->offset));

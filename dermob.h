@@ -26,6 +26,10 @@ int trigger;
 int text_offset;
 int text_size;
 int text_addr;
+// Offset, size and address of __TEXT, __cstring section
+int cs_offset;
+int cs_size;
+int cs_addr;
 // Offset, size and address of __DATA, __data section
 int data_offset;
 int data_size;
