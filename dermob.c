@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.26 2006/08/12 13:52:39 matthias Exp $ */
+/* $Id: dermob.c,v 1.27 2006/08/12 14:15:25 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -172,16 +172,16 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 		case LC_SEGMENT:
 			sc = malloc(sizeof(*sc));
 			memcpy(sc, ptr, sizeof(*sc));
-			mprintf("  Name:		%s\n", sc->segname);
-			mprintf("  VM addr:	0x%.08x\n", swapi(sc->vmaddr));
-			mprintf("  VM size:	0x%.08x\n", swapi(sc->vmsize));
-			mprintf("  VM size:	0x%.08x\n", swapi(sc->vmsize));
-			mprintf("  File offset:	0x%.08x\n", swapi(sc->fileoff));
-			mprintf("  File size:	%d bytes\n", swapi(sc->filesize));
-			mprintf("  Max prot:	0x%.08x\n", swapi(sc->maxprot));
-			mprintf("  Init prot:	0x%.08x\n", swapi(sc->initprot));
-			mprintf("  No of sects:	%d\n", swapi(sc->nsects));
-			mprintf("  Flags:	0x%.08x\n", swapi(sc->flags));
+			mprintf("    Name:		%s\n", sc->segname);
+			mprintf("    VM addr:		0x%.08x\n", swapi(sc->vmaddr));
+			mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
+			mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
+			mprintf("    File offset:	0x%.08x\n", swapi(sc->fileoff));
+			mprintf("    File size:		%d bytes\n", swapi(sc->filesize));
+			mprintf("    Max prot:		0x%.08x\n", swapi(sc->maxprot));
+			mprintf("    Init prot:		0x%.08x\n", swapi(sc->initprot));
+			mprintf("    No of sects:	%d\n", swapi(sc->nsects));
+			mprintf("    Flags:		0x%.08x\n", swapi(sc->flags));
 			*nofx = swapi(sc->nsects);
 			//*offset += sizeof(*sc);
 			ret = sizeof(*sc);
@@ -190,10 +190,10 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 		case LC_SYMTAB:
 			symc = malloc(sizeof(*symc));
 			memcpy(symc, ptr, sizeof(*symc));
-			mprintf("  Symbol table offset:	%d bytes\n", swapi(symc->symoff));
-			mprintf("  Symbol table entries:	%d\n", swapi(symc->nsyms));
-			mprintf("  String table offset:	%d bytes\n", swapi(symc->stroff));
-			mprintf("  String table size:	%d bytes\n", swapi(symc->strsize));
+			mprintf("    Symbol table offset:	%d bytes\n", swapi(symc->symoff));
+			mprintf("    Symbol table entries:	%d\n", swapi(symc->nsyms));
+			mprintf("    String table offset:	%d bytes\n", swapi(symc->stroff));
+			mprintf("    String table size:		%d bytes\n", swapi(symc->strsize));
 			//*offset += sizeof(*symc);
 			ret = sizeof(*symc);
 			free(symc);
@@ -203,11 +203,11 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
 			if (dyn_display < 1) {
-				mprintf("  Name:			%s\n", ptr+swapi(dly->dylib.name.offset));
+				mprintf("    Name:		%s\n", ptr+swapi(dly->dylib.name.offset));
 				timev = swapi(dly->dylib.timestamp);
-				mprintf("  Timestamp:		%s", ctime(&timev));
-				mprintf("  Current version:	0x%x\n", swapi(dly->dylib.current_version));
-				mprintf("  Compat version:	0x%x\n", swapi(dly->dylib.compatibility_version));
+				mprintf("    Timestamp:		%s", ctime(&timev));
+				mprintf("    Current version:	0x%x\n", swapi(dly->dylib.current_version));
+				mprintf("    Compat version:	0x%x\n", swapi(dly->dylib.compatibility_version));
 			} else {
 				trigger = 0;
 				mprintf("   + %s\n", ptr+swapi(dly->dylib.name.offset));
@@ -220,7 +220,7 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 		case LC_LOAD_DYLINKER:
 			dlnk = malloc(sizeof(*dlnk));
 			memcpy(dlnk, ptr, sizeof(*dlnk));
-			mprintf("  Name:		%s\n", ptr+swapi(dlnk->name.offset));
+			mprintf("    Name:		%s\n", ptr+swapi(dlnk->name.offset));
 			//*offset += sizeof(*dlnk);
 			ret = sizeof(*dlnk);
 			free(dlnk);
@@ -228,24 +228,24 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 		case LC_DYSYMTAB:
 			dsym = malloc(sizeof(*dsym));
 			memcpy(dsym, ptr, sizeof(*dsym));
-			mprintf("  ilocalsym:		%d\n", swapi(dsym->ilocalsym));
-			mprintf("  nlocalsym:		%d\n", swapi(dsym->nlocalsym));
-			mprintf("  iextdefsym:		%d\n", swapi(dsym->iextdefsym));
-			mprintf("  nextdefsym:		%d\n", swapi(dsym->nextdefsym));
-			mprintf("  iundefsym:		%d\n", swapi(dsym->iundefsym));
-			mprintf("  nundefsym:		%d\n", swapi(dsym->nundefsym));
-			mprintf("  tocoff:		%d\n", swapi(dsym->tocoff));
-			mprintf("  ntoc:			%d\n", swapi(dsym->ntoc));
-			mprintf("  modtaboff:		%d\n", swapi(dsym->modtaboff));
-			mprintf("  nmodtab:		%d\n", swapi(dsym->nmodtab));
-			mprintf("  extrefsymoff:		%d\n", swapi(dsym->extrefsymoff));
-			mprintf("  nextrefsyms:		%d\n", swapi(dsym->nextrefsyms));
-			mprintf("  indirectsymoff:	%d\n", swapi(dsym->indirectsymoff));
-			mprintf("  nindirectsyms:	%d\n", swapi(dsym->nindirectsyms));
-			mprintf("  extreloff:		%d\n", swapi(dsym->extreloff));
-			mprintf("  nextrel:		%d\n", swapi(dsym->nextrel));
-			mprintf("  locreloff:		%d\n", swapi(dsym->locreloff));
-			mprintf("  nlocrel:		%d\n", swapi(dsym->nlocrel));
+			mprintf("    ilocalsym:		%d\n", swapi(dsym->ilocalsym));
+			mprintf("    nlocalsym:		%d\n", swapi(dsym->nlocalsym));
+			mprintf("    iextdefsym:	%d\n", swapi(dsym->iextdefsym));
+			mprintf("    nextdefsym:	%d\n", swapi(dsym->nextdefsym));
+			mprintf("    iundefsym:		%d\n", swapi(dsym->iundefsym));
+			mprintf("    nundefsym:		%d\n", swapi(dsym->nundefsym));
+			mprintf("    tocoff:		%d\n", swapi(dsym->tocoff));
+			mprintf("    ntoc:		%d\n", swapi(dsym->ntoc));
+			mprintf("    modtaboff:		%d\n", swapi(dsym->modtaboff));
+			mprintf("    nmodtab:		%d\n", swapi(dsym->nmodtab));
+			mprintf("    extrefsymoff:	%d\n", swapi(dsym->extrefsymoff));
+			mprintf("    nextrefsyms:	%d\n", swapi(dsym->nextrefsyms));
+			mprintf("    indirectsymoff:	%d\n", swapi(dsym->indirectsymoff));
+			mprintf("    nindirectsyms:	%d\n", swapi(dsym->nindirectsyms));
+			mprintf("    extreloff:		%d\n", swapi(dsym->extreloff));
+			mprintf("    nextrel:		%d\n", swapi(dsym->nextrel));
+			mprintf("    locreloff:		%d\n", swapi(dsym->locreloff));
+			mprintf("    nlocrel:		%d\n", swapi(dsym->nlocrel));
 			//*offset += sizeof(*dsym);
 			ret = sizeof(*dsym);
 			free(dsym);

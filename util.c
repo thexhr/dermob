@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.14 2006/08/12 14:01:14 matthias Exp $ */
+/* $Id: util.c,v 1.15 2006/08/12 14:15:25 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -55,9 +55,15 @@ display_fat_header(char *buffer, int *roffset)
 
 	narch = swapi(fh->nfat_arch);
 	for (i = 0; i < narch; i++) {
-		mprintf(" Architecture %d\n", i);
 		analyse_fat_arch(buffer, &offset, fa);
 
+		if (swapi(fa->size) > size) {
+			printf("Malformed universal binary.  Size for one " \
+			"Architecture is larger than the complete binary.\n");
+			exit(1);
+		}
+		mprintf(" Architecture %d\n", i+1);
+		
 		if (cpu == swapi(fa->cputype))
 			*roffset = swapi(fa->offset);
 
@@ -100,7 +106,7 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 	sec = malloc(sizeof(*sec));
 	
 	for (i = 0; i < ncmds; i++) {
-		mprintf("Load command:	%d\n", i);
+		mprintf(" - Load command:	%d\n", i+1);
 		analyse_load_command(buffer, offset, ld);
 		print_load_command(ld);
 		offset_old = *offset;
@@ -109,7 +115,7 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 			for (j = 0; j < nofx; j++) {
 				// Skip the segment header
 				if (j == 0) *offset += val;
-				mprintf("Section %d\n", j);
+				mprintf("   + Section %d\n", j+1);
 				examine_section(buffer, offset, sec);
 				if ((strcmp(sec->segname, "__TEXT") == 0) &&
 				    (strcmp(sec->sectname, "__text") == 0)) {
@@ -152,25 +158,25 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 void
 print_section(struct section *sec)
 {
-	mprintf("    Sectname:	%s\n", sec->sectname);
-	mprintf("    VM addr:	0x%.08x\n", swapi(sec->addr));
-	mprintf("    VM size:	%d bytes\n", swapi(sec->size));
-	mprintf("    Offset:	%d\n", swapi(sec->offset));
+	mprintf("     Sectname:	%s\n", sec->sectname);
+	mprintf("     VM addr:	0x%.08x\n", swapi(sec->addr));
+	mprintf("     VM size:	%d bytes\n", swapi(sec->size));
+	mprintf("     Offset:	%d\n", swapi(sec->offset));
 	mprintf("\n");
 }
 
 void
 print_load_command(struct load_command *ld)
 {
-	mprintf("  Command:	");
+	mprintf("    Command:	");
 	display_cmd_name(swapi(ld->cmd));
-	mprintf("  Command size:	%d bytes\n", swapi(ld->cmdsize));
+	mprintf("    Command size:	%d bytes\n", swapi(ld->cmdsize));
 }
 
 void
 print_mo_header(struct mach_header *mh)
 {
-	mprintf(" Magic:		0x%x\n", swapi(mh->magic));
+	mprintf("Magic:		0x%x\n", swapi(mh->magic));
 	mprintf(" CPU Type:	");
 	display_cpu_arch(swapi(mh->cputype));
 	mprintf("\n");	
@@ -185,7 +191,7 @@ print_mo_header(struct mach_header *mh)
 void
 print_fat_header(struct fat_header *fh)
 {
-	mprintf(" Magic:		0x%x\n", swapi(fh->magic));
+	mprintf("Magic:		0x%x\n", swapi(fh->magic));
 }
 
 void

@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.7 2006/08/12 13:37:06 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.8 2006/08/12 14:15:25 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -84,7 +84,8 @@ main (int argc, char **argv)
 	if ((buffer = malloc(sb.st_size)) == NULL)
 		errx(1, "Cannot allocate memory");
 	
-	len = read(fd, buffer, sb.st_size);
+	size = sb.st_size;
+	len = read(fd, buffer, size);
 	
 	cpu = get_cpu_information();
 	bo_a = get_bo_information();

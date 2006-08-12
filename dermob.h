@@ -47,5 +47,7 @@ int cpu;
 int bo_a;
 // Binary byte order
 int bo_b;
+// Size in bytes of the binary
+size_t size;
 
 #endif
