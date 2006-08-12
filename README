@@ -8,10 +8,11 @@
 dermob -- mach-o binary analyzer
 	(c) 2006 by xhr () staatsfeind . org
 
-
-Usage:  dermob [-chtux] <binary>
+Usage:  dermob [-cdhstux] <binary>
         -c:  Display complete header
+        -d:  Display __DATA,__data section
         -h:  Display mach-o header
+        -s:  Display __TEXT,__csting section
         -t:  Display __TEXT,__text section
         -u:  Display universal header
         -x:  Display hexdump
