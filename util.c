@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.13 2006/08/12 10:51:28 matthias Exp $ */
+/* $Id: util.c,v 1.14 2006/08/12 14:01:14 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -52,7 +52,6 @@ display_fat_header(char *buffer, int *roffset)
 	
 	print_fat_header(fh);
 	fa = malloc(sizeof(*fa));
-	cpu = get_cpu_information();
 
 	narch = swapi(fh->nfat_arch);
 	for (i = 0; i < narch; i++) {
