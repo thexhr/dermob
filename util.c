@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.15 2006/08/12 14:15:25 matthias Exp $ */
+/* $Id: util.c,v 1.16 2006/08/12 15:08:40 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -306,8 +306,13 @@ get_bo_information()
 unsigned int
 swapi(unsigned int i)
 {
-	if (bo_a == LE && bo_b == BE)
-		return swap_bo(i);
-	
-	return(i);
+	unsigned int ret = i;
+
+	if (bo_a == LE && bo_b == BE) {
+		ret = swap_bo(i);
+        } else if(bo_a == BE && bo_b == LE) {
+		ret = swap_bo(i);
+	}
+
+        return(ret);
 }
