@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.6 2006/08/12 10:51:28 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.7 2006/08/12 13:37:06 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -33,7 +33,7 @@
 void
 usage(const char *file)
 {
-	printf("Usage: 	%s [-cdhtux] <binary>\n", file);
+	printf("Usage: 	%s [-cdhstux] <binary>\n", file);
 	printf("	-c:  Display complete header\n");
 	printf("	-d:  Display __DATA,__data section\n");	
 	printf("	-h:  Display mach-o header\n");
