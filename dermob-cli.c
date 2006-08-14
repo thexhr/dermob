@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.8 2006/08/12 14:15:25 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.9 2006/08/14 08:27:58 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -76,10 +76,10 @@ main (int argc, char **argv)
 	argv += optind;
 	
 	if ((stat(argv[0], &sb)) < 0) 
-		errx(1, "Cannot open %s", argv[1]);
+		errx(1, "Cannot open %s", argv[0]);
 	
 	if ((fd = open(argv[0], O_RDONLY, 0)) < 0)
-		errx(1, "Cannot open %s", argv[1]);
+		errx(1, "Cannot open %s", argv[0]);
 	
 	if ((buffer = malloc(sb.st_size)) == NULL)
 		errx(1, "Cannot allocate memory");
