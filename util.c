@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.17 2006/08/15 12:30:18 matthias Exp $ */
+/* $Id: util.c,v 1.18 2006/08/15 12:44:23 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -65,7 +65,6 @@ display_fat_header(char *buffer, int *roffset)
 			"Architecture is larger than the complete binary.\n");
 			exit(1);
 		}
-		//mprintf(" Architecture %d\n", i+1);
 		
 		if (cpu == swapi(fa->cputype))
 			*roffset = swapi(fa->offset);
@@ -101,7 +100,6 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 
 	for (i = 0; i < ncmds; i++) {
 		ld = malloc(sizeof(*ld));
-		//mprintf(" - Load command:	%d\n", i+1);
 		analyse_load_command(buffer, offset, ld);
 		list_insert_node(lst, ld, 0x4);
 		offset_old = *offset;
@@ -111,7 +109,6 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 				sec = malloc(sizeof(*sec));
 				// Skip the segment header
 				if (j == 0) *offset += val;
-				//mprintf("   + Section %d\n", j+1);
 				examine_section(buffer, offset, sec);
 				if ((strcmp(sec->segname, "__TEXT") == 0) &&
 				    (strcmp(sec->sectname, "__text") == 0)) {
