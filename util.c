@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.18 2006/08/15 12:44:23 matthias Exp $ */
+/* $Id: util.c,v 1.19 2006/08/15 13:13:16 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -35,7 +35,7 @@
 	(((i & 0xFF000000) >> 24) | \
 	((i & 0x00FF0000) >> 8) | \
 	((i & 0x0000FF00) << 8) | \
-	((i & 0x000000FF) << 24));
+	((i & 0x000000FF) << 24))
 
 int
 display_fat_header(char *buffer, int *roffset)
@@ -262,13 +262,27 @@ print_fat_header(struct fat_header *fh)
 void
 print_fat_arch(struct fat_arch *fa)
 {
-	mprintf("   CPU Type:	(%x) ", swapi(fa->cputype));
-	display_cpu_arch(swapi(fa->cputype));
-	mprintf("\n");
-	mprintf("   Subtype:	%d\n", swapi(fa->cpusubtype));
-	mprintf("   Offest:	%d\n", swapi(fa->offset));
-	mprintf("   Size:	%d\n", swapi(fa->size));
-	mprintf("   Align:	%d\n", swapi(fa->align));
+	/* The fat header is always stored in big-endian byte order, so we have
+	 * to swap the bo, if we work on a little-endian machine.
+	 */
+	if (bo_a == LE) {
+		mprintf("   CPU Type:	(%x) ", swap_bo(fa->cputype));
+		display_cpu_arch(swap_bo(fa->cputype));
+		mprintf("\n");
+		mprintf("   Subtype:	%d\n", swap_bo(fa->cpusubtype));
+		mprintf("   Offest:	%d\n", swap_bo(fa->offset));
+		mprintf("   Size:	%d\n", swap_bo(fa->size));
+		mprintf("   Align:	%d\n", swap_bo(fa->align));
+	} else {
+		mprintf("   CPU Type:	(%x) ", swapi(fa->cputype));
+		display_cpu_arch(swapi(fa->cputype));
+		mprintf("\n");
+		mprintf("   Subtype:	%d\n", swapi(fa->cpusubtype));
+		mprintf("   Offest:	%d\n", swapi(fa->offset));
+		mprintf("   Size:	%d\n", swapi(fa->size));
+		mprintf("   Align:	%d\n", swapi(fa->align));
+
+	}
 	mprintf("\n");
 }
 
