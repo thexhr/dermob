@@ -24,11 +24,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob.c,v 1.27 2006/08/12 14:15:25 matthias Exp $ */
+/* $Id: dermob.c,v 1.28 2006/08/15 12:29:02 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
 #include "defs.h"
+#include "list.h"
 
 /*
  * Analyse a possible fat header or return silently
@@ -161,7 +162,6 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 	struct dylinker_command *dlnk;
 	struct dysymtab_command *dsym;
 	struct twolevel_hints_command *two;
-	time_t timev;
 	int ret = 0;
 	char *ptr;
 	
@@ -172,92 +172,46 @@ examine_segmet(char *buffer, int *offset, int cmd, int cmdsize, int *nofx)
 		case LC_SEGMENT:
 			sc = malloc(sizeof(*sc));
 			memcpy(sc, ptr, sizeof(*sc));
-			mprintf("    Name:		%s\n", sc->segname);
-			mprintf("    VM addr:		0x%.08x\n", swapi(sc->vmaddr));
-			mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
-			mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
-			mprintf("    File offset:	0x%.08x\n", swapi(sc->fileoff));
-			mprintf("    File size:		%d bytes\n", swapi(sc->filesize));
-			mprintf("    Max prot:		0x%.08x\n", swapi(sc->maxprot));
-			mprintf("    Init prot:		0x%.08x\n", swapi(sc->initprot));
-			mprintf("    No of sects:	%d\n", swapi(sc->nsects));
-			mprintf("    Flags:		0x%.08x\n", swapi(sc->flags));
+			list_insert_node(lst, sc, 0x6);
 			*nofx = swapi(sc->nsects);
 			//*offset += sizeof(*sc);
 			ret = sizeof(*sc);
-			free(sc);
 			break;
 		case LC_SYMTAB:
 			symc = malloc(sizeof(*symc));
 			memcpy(symc, ptr, sizeof(*symc));
-			mprintf("    Symbol table offset:	%d bytes\n", swapi(symc->symoff));
-			mprintf("    Symbol table entries:	%d\n", swapi(symc->nsyms));
-			mprintf("    String table offset:	%d bytes\n", swapi(symc->stroff));
-			mprintf("    String table size:		%d bytes\n", swapi(symc->strsize));
+			list_insert_node(lst, symc, 0x7);
 			//*offset += sizeof(*symc);
 			ret = sizeof(*symc);
-			free(symc);
 			break;
 		case LC_LOAD_DYLIB:
 			dynamic = 1;
 			dly = malloc(sizeof(*dly));
 			memcpy(dly, ptr, sizeof(*dly));
-			if (dyn_display < 1) {
-				mprintf("    Name:		%s\n", ptr+swapi(dly->dylib.name.offset));
-				timev = swapi(dly->dylib.timestamp);
-				mprintf("    Timestamp:		%s", ctime(&timev));
-				mprintf("    Current version:	0x%x\n", swapi(dly->dylib.current_version));
-				mprintf("    Compat version:	0x%x\n", swapi(dly->dylib.compatibility_version));
-			} else {
-				trigger = 0;
-				mprintf("   + %s\n", ptr+swapi(dly->dylib.name.offset));
-				trigger = 1;
-			}
+			list_insert_node(lst, dly, 0x8);
 			//*offset += sizeof(*dly);
 			ret = sizeof(*dly);
-			free(dly);
 			break;
 		case LC_LOAD_DYLINKER:
 			dlnk = malloc(sizeof(*dlnk));
 			memcpy(dlnk, ptr, sizeof(*dlnk));
-			mprintf("    Name:		%s\n", ptr+swapi(dlnk->name.offset));
+			//mprintf("    Name:		%s\n", ptr+swapi(dlnk->name.offset));
 			//*offset += sizeof(*dlnk);
 			ret = sizeof(*dlnk);
-			free(dlnk);
 			break;
 		case LC_DYSYMTAB:
 			dsym = malloc(sizeof(*dsym));
 			memcpy(dsym, ptr, sizeof(*dsym));
-			mprintf("    ilocalsym:		%d\n", swapi(dsym->ilocalsym));
-			mprintf("    nlocalsym:		%d\n", swapi(dsym->nlocalsym));
-			mprintf("    iextdefsym:	%d\n", swapi(dsym->iextdefsym));
-			mprintf("    nextdefsym:	%d\n", swapi(dsym->nextdefsym));
-			mprintf("    iundefsym:		%d\n", swapi(dsym->iundefsym));
-			mprintf("    nundefsym:		%d\n", swapi(dsym->nundefsym));
-			mprintf("    tocoff:		%d\n", swapi(dsym->tocoff));
-			mprintf("    ntoc:		%d\n", swapi(dsym->ntoc));
-			mprintf("    modtaboff:		%d\n", swapi(dsym->modtaboff));
-			mprintf("    nmodtab:		%d\n", swapi(dsym->nmodtab));
-			mprintf("    extrefsymoff:	%d\n", swapi(dsym->extrefsymoff));
-			mprintf("    nextrefsyms:	%d\n", swapi(dsym->nextrefsyms));
-			mprintf("    indirectsymoff:	%d\n", swapi(dsym->indirectsymoff));
-			mprintf("    nindirectsyms:	%d\n", swapi(dsym->nindirectsyms));
-			mprintf("    extreloff:		%d\n", swapi(dsym->extreloff));
-			mprintf("    nextrel:		%d\n", swapi(dsym->nextrel));
-			mprintf("    locreloff:		%d\n", swapi(dsym->locreloff));
-			mprintf("    nlocrel:		%d\n", swapi(dsym->nlocrel));
+			list_insert_node(lst, dsym, 0x9);
 			//*offset += sizeof(*dsym);
 			ret = sizeof(*dsym);
-			free(dsym);
 			break;
 		case LC_TWOLEVEL_HINTS:
 			two = malloc(sizeof(*two));
 			memcpy(two, ptr, sizeof(*two));
-			mprintf("  Offset:		%d\n", swapi(two->offset));
-			mprintf("  No of 2level hints:	%d\n", swapi(two->nhints));
+			list_insert_node(lst, two, 0xa);
 			//*offset += sizeof(*two);			
 			ret = sizeof(*two);
-			free(two);
 			break;
 		case LC_THREAD:
 		case LC_UNIXTHREAD:
