@@ -24,11 +24,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.9 2006/08/14 08:27:58 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.10 2006/08/15 12:28:17 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
 #include "defs.h"
+#include "list.h"
 
 void
 usage(const char *file)
@@ -90,55 +91,59 @@ main (int argc, char **argv)
 	cpu = get_cpu_information();
 	bo_a = get_bo_information();
 	
+	lst = list_create_list();
+	
 	switch (flag) {
+		// -u
 		case 0x1:
-			trigger = 0;
 			display_fat_header(buffer, &offset);
+			list_traverse_list(lst);
 			break;
+		// -h
 		case 0x2:
-			trigger = 1;
 			display_fat_header(buffer, &offset);
-			trigger = 0;
 			display_mo_header(buffer, &offset, &ncmds);
+			list_traverse_list(lst);
 			break;
+		// -uh
 		case 0x3:
 			display_fat_header(buffer, &offset);
 			display_mo_header(buffer, &offset, &ncmds);
+			list_traverse_list(lst);
 			break;
+		// -c
 		case 0x4:
 			display_fat_header(buffer, &offset);
 			display_mo_header(buffer, &offset, &ncmds);
 			display_load_commands(buffer, &offset, ncmds);
+			list_traverse_list(lst);
 			break;
+		// -t
 		case 0x8:
-			trigger = 1;
 			display_fat_header(buffer, &offset);
 			display_mo_header(buffer, &offset, &ncmds);
 			display_load_commands(buffer, &offset, ncmds);
-			trigger = 0;
 			display_buffer(buffer, text_addr, text_offset, text_size);
 			break;
+		// -x
 		case 0x16:
 			display_buffer(buffer, 0, 0, len);
 			break;
+		// -d
 		case 0x32:
-			trigger = 1;
 			display_fat_header(buffer, &offset);
 			display_mo_header(buffer, &offset, &ncmds);
 			display_load_commands(buffer, &offset, ncmds);
-			trigger = 0;
 			display_buffer(buffer, data_addr, data_offset, data_size);
 			break;
+		// -s
 		case 0x64:
-			trigger = 1;
 			display_fat_header(buffer, &offset);
 			display_mo_header(buffer, &offset, &ncmds);
 			display_load_commands(buffer, &offset, ncmds);
-			trigger = 0;
 			display_buffer(buffer, cs_addr, cs_offset, cs_size);
 			break;
 		default:
-			trigger = 1;
 			ret = display_fat_header(buffer, &offset);
 			if (ret > 0)
 				printf("- Universal Binary for %d architectures\n", ret);
@@ -155,6 +160,8 @@ main (int argc, char **argv)
 			break;
 	}
 
+	list_free_list(lst);
+	
 	close(fd);
 	free(buffer);
 	
