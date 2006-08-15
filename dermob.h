@@ -50,4 +50,7 @@ int bo_b;
 // Size in bytes of the binary
 size_t size;
 
+
+struct list *lst;
+
 #endif
