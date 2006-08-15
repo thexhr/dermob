@@ -24,11 +24,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.16 2006/08/12 15:08:40 matthias Exp $ */
+/* $Id: util.c,v 1.17 2006/08/15 12:30:18 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
 #include "defs.h"
+#include "list.h"
 
 #define swap_bo(i) \
 	(((i & 0xFF000000) >> 24) | \
@@ -50,29 +51,26 @@ display_fat_header(char *buffer, int *roffset)
 		return(-1);
 	}
 	
-	print_fat_header(fh);
-	fa = malloc(sizeof(*fa));
+	list_insert_node(lst, fh, 0x1);
 
 	narch = swapi(fh->nfat_arch);
 	for (i = 0; i < narch; i++) {
+		fa = malloc(sizeof(*fa));
 		analyse_fat_arch(buffer, &offset, fa);
-
+		
+		list_insert_node(lst, fa, 0x2);
+		
 		if (swapi(fa->size) > size) {
 			printf("Malformed universal binary.  Size for one " \
 			"Architecture is larger than the complete binary.\n");
 			exit(1);
 		}
-		mprintf(" Architecture %d\n", i+1);
+		//mprintf(" Architecture %d\n", i+1);
 		
 		if (cpu == swapi(fa->cputype))
 			*roffset = swapi(fa->offset);
-
-		print_fat_arch(fa);
 	}
 
-	free(fh);
-	free(fa);
-	
 	return(narch);
 }
 
@@ -89,8 +87,7 @@ display_mo_header(char *buffer, int *offset, int *ncmds)
 	
 	*ncmds = swapi(mh->ncmds);
 	
-	print_mo_header(mh);
-	free(mh);
+	list_insert_node(lst, mh, 0x3);
 	
 	return(1);
 }
@@ -101,21 +98,20 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 	struct load_command *ld;
 	struct section *sec;
 	int i, nofx = 0, val = 0, j, offset_old;
-	
-	ld = malloc(sizeof(*ld));
-	sec = malloc(sizeof(*sec));
-	
+
 	for (i = 0; i < ncmds; i++) {
-		mprintf(" - Load command:	%d\n", i+1);
+		ld = malloc(sizeof(*ld));
+		//mprintf(" - Load command:	%d\n", i+1);
 		analyse_load_command(buffer, offset, ld);
-		print_load_command(ld);
+		list_insert_node(lst, ld, 0x4);
 		offset_old = *offset;
 		val = examine_segmet(buffer, offset, swapi(ld->cmd), swapi(ld->cmdsize), &nofx);
 		if (nofx > 0) {
 			for (j = 0; j < nofx; j++) {
+				sec = malloc(sizeof(*sec));
 				// Skip the segment header
 				if (j == 0) *offset += val;
-				mprintf("   + Section %d\n", j+1);
+				//mprintf("   + Section %d\n", j+1);
 				examine_section(buffer, offset, sec);
 				if ((strcmp(sec->segname, "__TEXT") == 0) &&
 				    (strcmp(sec->sectname, "__text") == 0)) {
@@ -135,7 +131,7 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 					data_size = swapi(sec->size);
 					data_offset = swapi(sec->offset);
 				}
-				print_section(sec);
+				list_insert_node(lst, sec, 0x5);
 			}
 			nofx = 0;
 		}
@@ -153,6 +149,78 @@ display_load_commands(char *buffer, int *offset, int ncmds)
 		//if (*offset == offset_old)
 		//	*offset += swapi(ld->cmdsize);
 	}
+}
+
+void
+print_lc_towlevel_hints(struct twolevel_hints_command *two)
+{
+	mprintf("  Offset:		%d\n", swapi(two->offset));
+	mprintf("  No of 2level hints:	%d\n", swapi(two->nhints));
+}
+
+void
+print_lc_dysymtab(struct dysymtab_command *dsym)
+{
+	mprintf("    ilocalsym:		%d\n", swapi(dsym->ilocalsym));
+	mprintf("    nlocalsym:		%d\n", swapi(dsym->nlocalsym));
+	mprintf("    iextdefsym:	%d\n", swapi(dsym->iextdefsym));
+	mprintf("    nextdefsym:	%d\n", swapi(dsym->nextdefsym));
+	mprintf("    iundefsym:		%d\n", swapi(dsym->iundefsym));
+	mprintf("    nundefsym:		%d\n", swapi(dsym->nundefsym));
+	mprintf("    tocoff:		%d\n", swapi(dsym->tocoff));
+	mprintf("    ntoc:		%d\n", swapi(dsym->ntoc));
+	mprintf("    modtaboff:		%d\n", swapi(dsym->modtaboff));
+	mprintf("    nmodtab:		%d\n", swapi(dsym->nmodtab));
+	mprintf("    extrefsymoff:	%d\n", swapi(dsym->extrefsymoff));
+	mprintf("    nextrefsyms:	%d\n", swapi(dsym->nextrefsyms));
+	mprintf("    indirectsymoff:	%d\n", swapi(dsym->indirectsymoff));
+	mprintf("    nindirectsyms:	%d\n", swapi(dsym->nindirectsyms));
+	mprintf("    extreloff:		%d\n", swapi(dsym->extreloff));
+	mprintf("    nextrel:		%d\n", swapi(dsym->nextrel));
+	mprintf("    locreloff:		%d\n", swapi(dsym->locreloff));
+	mprintf("    nlocrel:		%d\n", swapi(dsym->nlocrel));
+}
+
+void
+print_lc_load_dylib(struct dylib_command *dly)
+{
+	time_t timev;
+	
+	if (dyn_display < 1) {
+		//mprintf("    Name:		%s\n", ptr+swapi(dly->dylib.name.offset));
+		timev = swapi(dly->dylib.timestamp);
+		mprintf("    Timestamp:		%s", ctime(&timev));
+		mprintf("    Current version:	0x%x\n", swapi(dly->dylib.current_version));
+		mprintf("    Compat version:	0x%x\n", swapi(dly->dylib.compatibility_version));
+	} else {
+		trigger = 0;
+		//mprintf("   + %s\n", ptr+swapi(dly->dylib.name.offset));
+		trigger = 1;
+	}	
+}
+
+void
+print_lc_symtab(struct symtab_command *symc)
+{
+	mprintf("    Symbol table offset:	%d bytes\n", swapi(symc->symoff));
+	mprintf("    Symbol table entries:	%d\n", swapi(symc->nsyms));
+	mprintf("    String table offset:	%d bytes\n", swapi(symc->stroff));
+	mprintf("    String table size:		%d bytes\n", swapi(symc->strsize));	
+}
+
+void
+print_lc_segment(struct segment_command *sc)
+{
+	mprintf("    Name:		%s\n", sc->segname);
+	mprintf("    VM addr:		0x%.08x\n", swapi(sc->vmaddr));
+	mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
+	mprintf("    VM size:		0x%.08x\n", swapi(sc->vmsize));
+	mprintf("    File offset:	0x%.08x\n", swapi(sc->fileoff));
+	mprintf("    File size:		%d bytes\n", swapi(sc->filesize));
+	mprintf("    Max prot:		0x%.08x\n", swapi(sc->maxprot));
+	mprintf("    Init prot:		0x%.08x\n", swapi(sc->initprot));
+	mprintf("    No of sects:	%d\n", swapi(sc->nsects));
+	mprintf("    Flags:		0x%.08x\n", swapi(sc->flags));
 }
 
 void
