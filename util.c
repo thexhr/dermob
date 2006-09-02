@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: util.c,v 1.19 2006/08/15 13:13:16 matthias Exp $ */
+/* $Id: util.c,v 1.20 2006/09/02 01:29:51 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -38,7 +38,7 @@
 	((i & 0x000000FF) << 24))
 
 int
-display_fat_header(char *buffer, int *roffset)
+display_fat_header(struct list *lst, char *buffer, int *roffset)
 {
 	struct fat_header *fh;
 	struct fat_arch *fa;
@@ -74,7 +74,7 @@ display_fat_header(char *buffer, int *roffset)
 }
 
 int
-display_mo_header(char *buffer, int *offset, int *ncmds)
+display_mo_header(struct list *lst, char *buffer, int *offset, int *ncmds)
 {
 	struct mach_header *mh;
 	
@@ -92,7 +92,7 @@ display_mo_header(char *buffer, int *offset, int *ncmds)
 }
 
 void
-display_load_commands(char *buffer, int *offset, int ncmds)
+display_load_commands(struct list *lst, char *buffer, int *offset, int ncmds)
 {
 	struct load_command *ld;
 	struct section *sec;

@@ -1,9 +1,9 @@
 #ifndef __DEFS_H
 #define __DEFS_H
 
-int display_fat_header(char *, int *);
-int display_mo_header(char *, int *, int *);
-void display_load_commands(char *, int *, int );
+int display_fat_header(struct list *lst, char *, int *);
+int display_mo_header(struct list *lst, char *, int *, int *);
+void display_load_commands(struct list *lst, char *, int *, int );
 void print_section(struct section *);
 void print_load_command(struct load_command *);
 void print_mo_header(struct mach_header *);

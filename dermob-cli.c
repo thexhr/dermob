@@ -24,7 +24,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: dermob-cli.c,v 1.10 2006/08/15 12:28:17 matthias Exp $ */
+/* $Id: dermob-cli.c,v 1.11 2006/09/02 01:29:51 matthias Exp $ */
 
 #include "dermob.h"
 #include "mach.h"
@@ -96,33 +96,33 @@ main (int argc, char **argv)
 	switch (flag) {
 		// -u
 		case 0x1:
-			display_fat_header(buffer, &offset);
+			display_fat_header(lst, buffer, &offset);
 			list_traverse_list(lst);
 			break;
 		// -h
 		case 0x2:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
 			list_traverse_list(lst);
 			break;
 		// -uh
 		case 0x3:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
 			list_traverse_list(lst);
 			break;
 		// -c
 		case 0x4:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
-			display_load_commands(buffer, &offset, ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
+			display_load_commands(lst, buffer, &offset, ncmds);
 			list_traverse_list(lst);
 			break;
 		// -t
 		case 0x8:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
-			display_load_commands(buffer, &offset, ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
+			display_load_commands(lst, buffer, &offset, ncmds);
 			display_buffer(buffer, text_addr, text_offset, text_size);
 			break;
 		// -x
@@ -131,23 +131,23 @@ main (int argc, char **argv)
 			break;
 		// -d
 		case 0x32:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
-			display_load_commands(buffer, &offset, ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
+			display_load_commands(lst, buffer, &offset, ncmds);
 			display_buffer(buffer, data_addr, data_offset, data_size);
 			break;
 		// -s
 		case 0x64:
-			display_fat_header(buffer, &offset);
-			display_mo_header(buffer, &offset, &ncmds);
-			display_load_commands(buffer, &offset, ncmds);
+			display_fat_header(lst, buffer, &offset);
+			display_mo_header(lst, buffer, &offset, &ncmds);
+			display_load_commands(lst, buffer, &offset, ncmds);
 			display_buffer(buffer, cs_addr, cs_offset, cs_size);
 			break;
 		default:
-			ret = display_fat_header(buffer, &offset);
+			ret = display_fat_header(lst, buffer, &offset);
 			if (ret > 0)
 				printf("- Universal Binary for %d architectures\n", ret);
-			ret = display_mo_header(buffer, &offset, &ncmds);
+			ret = display_mo_header(lst, buffer, &offset, &ncmds);
 			if (ret > 0)
 				printf("- Vaild mach-o binary\n");
 			else {
@@ -155,7 +155,7 @@ main (int argc, char **argv)
 				exit(1);
 			}
 			dyn_display = 1;
-			display_load_commands(buffer, &offset, ncmds);
+			display_load_commands(lst, buffer, &offset, ncmds);
 			printf("%s", dynamic ? "" : "- Statically linked\n");
 			break;
 	}
