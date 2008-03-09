@@ -75,6 +75,9 @@ main (int argc, char **argv)
 
 	argc -= optind;
 	argv += optind;
+
+	printf("dermob -- mach-o binary analyzer\n");
+	printf("	(c) 2006 by xhr (@staatsfeind.org)\n\n");
 	
 	if ((stat(argv[0], &sb)) < 0) 
 		errx(1, "Cannot open %s", argv[0]);
