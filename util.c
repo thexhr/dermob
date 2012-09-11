@@ -344,6 +344,7 @@ mprintf(const char *fmt, ...)
 int
 get_cpu_information()
 {
+#ifndef __linux__
 	char buf[50];
 	int mib[2];
 	size_t len;
@@ -358,13 +359,22 @@ get_cpu_information()
 		return(CPU_TYPE_X86);
 	else if (strncmp(buf, "Power Macintosh", 15) == 0)
 		return(CPU_TYPE_POWERPC);
-
+#else /* __linux__ */
+#if defined __x86_64__
+		return(CPU_TYPE_X86);
+#elif defined __i386__
+		return(CPU_TYPE_I386);
+#else
+#		error "Cannot determine local CPU type"
+#endif
+#endif /* __linux__ */
 	return(-1);
 }
 
 int
 get_bo_information()
 {
+#ifndef __linux__
 	int mib[2], bo;
 	size_t len;
 	
@@ -378,6 +388,15 @@ get_bo_information()
 		return(LE);
 	else if (bo == 4321)
 		return(BE);
+#else /* __linux__ */
+#if defined(__BIG_ENDIAN)
+		return(BE);
+#elif defined(__LITTLE_ENDIAN)
+		return(LE);
+#else
+#		error "Cannot determine local byte order"
+#endif /* byte order */
+#endif /* __linux__ */
 
 	return(-1);
 }
