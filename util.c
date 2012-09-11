@@ -316,7 +316,9 @@ display_cpu_arch(int cputype)
 		case CPU_TYPE_MC680x0:
 			mprintf("MC680x0"); break;
 		case CPU_TYPE_I386:
-			mprintf("x86"); break;
+			mprintf("x86_32"); break;
+		case CPU_TYPE_X86_64:
+			mprintf("x86_64"); break;
 		case CPU_TYPE_POWERPC:
 			mprintf("PowerPC"); break;
 		case CPU_TYPE_HPPA:
@@ -331,7 +333,7 @@ display_cpu_arch(int cputype)
 void
 mprintf(const char *fmt, ...)
 {
-        va_list ap;
+    va_list ap;
         
 	if (trigger == 1)
 		return;

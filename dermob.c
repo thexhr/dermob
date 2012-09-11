@@ -77,6 +77,27 @@ analyse_fat_arch(char *buffer, int *offset, struct fat_arch *rfa)
 	return(0);
 }
 
+int
+determine_mo_arch(char *buffer)
+{
+	struct mach_header_magic mhh;
+	char *ptr = buffer;
+	int ret = -1;
+
+	memcpy(&mhh, ptr, sizeof(mhh));
+
+	if (mhh.magic == MH_MAGIC_64)
+		ret = 0;
+	else if (mhh.magic == MH_CIGAM_64)
+		ret = 1;
+	else if (mhh.magic == MH_MAGIC)
+		ret = 2;
+	else if (mhh.magic == MH_CIGAM)
+		ret = 3;
+
+	return ret;
+}
+
 /*
  * Parse the mach-o header, set the correct byte order ot the binary and
  * determine the number of load commands.
@@ -86,30 +107,41 @@ analyse_mo_header(char *buffer, int *offset, struct mach_header *rmh)
 {
 	struct mach_header *mh;
 	char *ptr;
+	int moa;
 
-	mh = malloc(sizeof(*mh));
 	ptr = buffer;
-
 	if (offset > 0) 
 		ptr += *offset;
 
-	memcpy(mh, ptr, sizeof(*mh));
-
-	/* No valid mach-o binary */
-	if (mh->magic != MH_MAGIC && mh->magic != MH_CIGAM) {
-		rmh = NULL;
-		free(mh);
-		return(-1);
+	moa = determine_mo_arch(buffer);
+	if (moa != 0 && moa != 1 && moa != 2 && moa != 3) {
+		printf("Cannot determine mach-o architecture\n");
+		return(1);
 	}
 
+	/*
+	 * There is no need to differentiate between 32 and 64bit here, as the
+	 * headers are identical (I ignore the reserved field).
+	 */
+	mh = malloc(sizeof(*mh));
+	if (mh == NULL) {
+		printf("Cannot allocate memory\n");
+		return(1);
+	}
+	memcpy(mh, ptr, sizeof(*mh));
+
 	/* Determine the correct byte order */
-	if (mh->magic == MH_MAGIC && bo_a == LE)
+	if ((mh->magic == MH_MAGIC && bo_a == LE) ||
+		(mh->magic == MH_MAGIC_64 && bo_a == LE))
 		bo_b = LE;
-	else if (mh->magic == MH_CIGAM && bo_a == LE)
+	else if ((mh->magic == MH_CIGAM && bo_a == LE) ||
+			  (mh->magic == MH_CIGAM_64 && bo_a == LE))
 		bo_b = BE;
-	else if (mh->magic == MH_MAGIC && bo_a != LE)
+	else if ((mh->magic == MH_MAGIC && bo_a != LE)  ||
+			  (mh->magic == MH_MAGIC_64 && bo_a != LE))
 		bo_b = BE;
-	else if (mh->magic == MH_CIGAM && bo_a != LE)
+	else if ((mh->magic == MH_CIGAM && bo_a != LE) ||
+			  (mh->magic == MH_CIGAM_64 && bo_a != LE))
 		bo_b = LE;
 
 	offset_moh = *offset;
