@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Matthias Schmidt <xhr @ staatsfeind . org>
+ * Copyright (c) 2006 Matthias Schmidt <xhr @ giessen.ccc.de>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,7 +77,7 @@ main (int argc, char **argv)
 	argv += optind;
 
 	printf("dermob -- mach-o binary analyzer\n");
-	printf("	(c) 2006 by xhr (@staatsfeind.org)\n\n");
+	printf("	(c) 2006-12 by xhr (@giessen.ccc.de)\n\n");
 	
 	if ((stat(argv[0], &sb)) < 0) 
 		errx(1, "Cannot open %s", argv[0]);

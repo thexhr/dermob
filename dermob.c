@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Matthias Schmidt <xhr @ staatsfeind . org>
+ * Copyright (c) 2006 Matthias Schmidt <xhr @ giessen.ccc.de>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
