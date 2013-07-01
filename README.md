@@ -6,7 +6,7 @@
         \/              \/              \/                 \/            \/
 
 dermob -- mach-o binary analyzer
-	(c) 2006 by xhr () staatsfeind . org
+	(c) 2006 by xhr () giessen . ccc . de
 
 Usage:  dermob [-cdhstux] <binary>
         -c:  Display complete header
