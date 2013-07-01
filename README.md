@@ -1,3 +1,7 @@
+dermob
+======
+
+```
 .__        _____.__       .__  __       ____   ____________  .___________   
 |__| _____/ ____\__| ____ |__|/  |_  ___\   \ /   /\_____  \ |   \______ \  
 |  |/    \   __\|  |/    \|  \   __\/ __ \   Y   /  /   |   \|   ||    |  \ 
@@ -19,3 +23,4 @@ Usage:  dermob [-cdhstux] <binary>
 
 dermob was sucessfully tested under Mac OS X 10.4 and FreeBSD 6.  Other
 Operating Systems may, or may not, work.  Good luck.
+```
